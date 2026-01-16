@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S.C.A.A.M | Mission Genesis Briefing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;700;900&display=swap');
+      
+      :root {
+        --neon-blue: #3b82f6;
+        --neon-cyan: #06b6d4;
+        --space-dark: #020617;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--space-dark);
+        color: white;
+        overflow: hidden;
+      }
+
+      .font-orbitron {
+        font-family: 'Orbitron', sans-serif;
+      }
+
+      .slide-enter {
+        animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes slideIn {
+        from { opacity: 0; transform: scale(1.1) rotateX(10deg); filter: blur(10px); }
+        to { opacity: 1; transform: scale(1) rotateX(0); filter: blur(0); }
+      }
+
+      .scanline {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(18, 16, 16, 0) 50%,
+          rgba(0, 0, 0, 0.25) 50%
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255, 0, 0, 0.06),
+          rgba(0, 255, 0, 0.02),
+          rgba(0, 0, 255, 0.06)
+        );
+        background-size: 100% 4px, 3px 100%;
+        z-index: 100;
+        pointer-events: none;
+        opacity: 0.3;
+      }
+
+      .flicker {
+        animation: flicker 0.15s infinite;
+      }
+
+      @keyframes flicker {
+        0% { opacity: 0.97; }
+        5% { opacity: 0.95; }
+        10% { opacity: 0.9; }
+        15% { opacity: 0.95; }
+        20% { opacity: 0.98; }
+        100% { opacity: 1; }
+      }
+
+      .starfield {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(ellipse at bottom, #0d1d31 0%, #0c0d13 100%);
+        z-index: -1;
+      }
+
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+      }
+
+      .cyber-button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid var(--neon-blue);
+        background: rgba(59, 130, 246, 0.1);
+      }
+
+      .cyber-button:hover {
+        background: var(--neon-blue);
+        box-shadow: 0 0 20px var(--neon-blue);
+        color: white;
+      }
+
+      .cyber-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: 0.5s;
+      }
+
+      .cyber-button:hover::before {
+        left: 100%;
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+  </head>
+  <body>
+    <div class="starfield"></div>
+    <div class="scanline"></div>
+    <div id="root"></div>
+  </body>
+</html>

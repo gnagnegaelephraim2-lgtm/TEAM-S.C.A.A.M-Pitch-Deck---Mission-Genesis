@@ -1,0 +1,8 @@
+{
+  "name": "Mission Genesis - Pitch Operations",
+  "description": "Interactive gamified pitch for Team S.C.A.A.M. Built with Gemini AI for real-time vision generation and pitch assistance.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
