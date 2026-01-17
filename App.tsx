@@ -106,9 +106,9 @@ async function decodeAudioData(
 const MissionHUD = ({ phase, progress, current, total }: { phase: string, progress: number, current: number, total: number }) => (
   <div className="fixed top-0 left-0 w-full p-4 md:p-6 flex justify-between items-start md:items-center z-50 pointer-events-none">
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-4 bg-slate-900/80 border border-blue-500/30 px-4 py-1.5 md:px-6 md:py-2 rounded-full backdrop-blur-md">
-        <div className="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-pulse"></div>
-        <div className="font-orbitron text-[8px] md:text-[10px] tracking-widest text-blue-400 font-bold uppercase truncate max-w-[150px] md:max-w-none">
+      <div className="flex items-center gap-4 bg-slate-900/80 border border-purple-500/30 px-4 py-1.5 md:px-6 md:py-2 rounded-full backdrop-blur-md">
+        <div className="w-2 h-2 md:w-3 md:h-3 bg-purple-500 rounded-full animate-pulse"></div>
+        <div className="font-orbitron text-[8px] md:text-[10px] tracking-widest text-purple-400 font-bold uppercase truncate max-w-[150px] md:max-w-none">
           OP_LOG://{phase.replace(/\s+/g, '_')}
         </div>
       </div>
@@ -123,7 +123,7 @@ const MissionHUD = ({ phase, progress, current, total }: { phase: string, progre
       <div className="font-orbitron text-[8px] md:text-[9px] text-slate-500 tracking-[0.3em] uppercase">SYNC: {Math.round(progress)}%</div>
       <div className="w-32 md:w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
         <div 
-          className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-1000 ease-out" 
+          className="h-full bg-gradient-to-r from-purple-600 to-orange-400 transition-all duration-1000 ease-out" 
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -137,7 +137,7 @@ const GameMenu = ({ current, total, onSelect }: { current: number, total: number
       <button 
         key={i}
         onClick={() => onSelect(i)}
-        className={`h-1.5 md:h-2.5 flex-shrink-0 rounded-full transition-all duration-300 ${i === current ? 'bg-blue-500 w-8 md:w-12 ring-2 md:ring-4 ring-blue-500/20' : 'bg-slate-700 hover:bg-slate-500 w-1.5 md:w-2.5'}`}
+        className={`h-1.5 md:h-2.5 flex-shrink-0 rounded-full transition-all duration-300 ${i === current ? 'bg-orange-500 w-8 md:w-12 ring-2 md:ring-4 ring-orange-500/20' : 'bg-slate-700 hover:bg-slate-500 w-1.5 md:w-2.5'}`}
         title={`Phase ${i + 1}`}
       />
     ))}
@@ -149,31 +149,31 @@ const GameMenu = ({ current, total, onSelect }: { current: number, total: number
 const IntroBriefing = () => (
   <div className="flex flex-col items-center justify-center h-full text-center px-6 pt-16">
     <div className="relative mb-6 md:mb-8 scale-75 md:scale-100">
-      <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border border-blue-500/20 flex items-center justify-center p-4">
-        <div className="w-full h-full rounded-full border-4 border-dashed border-blue-500/40 animate-[spin_30s_linear_infinite]" />
+      <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border border-purple-500/20 flex items-center justify-center p-4">
+        <div className="w-full h-full rounded-full border-4 border-dashed border-purple-500/40 animate-[spin_30s_linear_infinite]" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center">
-            <h1 className="text-5xl md:text-7xl font-orbitron font-black text-white drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] tracking-tighter italic">S.M</h1>
-            <div className="text-[8px] md:text-[10px] font-orbitron text-blue-400 tracking-[0.5em] mt-2">GENESIS</div>
+            <h1 className="text-5xl md:text-7xl font-orbitron font-black text-white drop-shadow-[0_0_20px_rgba(147,51,234,0.8)] tracking-tighter italic">S.M</h1>
+            <div className="text-[8px] md:text-[10px] font-orbitron text-orange-400 tracking-[0.5em] mt-2">GENESIS</div>
           </div>
         </div>
       </div>
-      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 px-4 md:px-6 py-1 rounded-full font-orbitron text-[8px] md:text-[10px] tracking-widest text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-purple-600 px-4 md:px-6 py-1 rounded-full font-orbitron text-[8px] md:text-[10px] tracking-widest text-white shadow-[0_0_15px_rgba(147,51,234,0.5)]">
         MISSION_AUTHORIZED
       </div>
     </div>
     
     <div className="max-w-4xl space-y-4 md:space-y-6">
-      <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">TEAM <span className="text-blue-500">S.C.A.A.M</span></h2>
+      <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">TEAM <span className="text-purple-500">S.C.A.A.M</span></h2>
       <p className="text-lg md:text-3xl text-slate-300 font-light leading-relaxed italic max-w-2xl mx-auto">
         "Memorizing formulas won’t improve our economy. Real learning happens when students can <span className="text-white font-bold">think, create, and act</span>."
       </p>
     </div>
     
     <div className="mt-12 md:mt-16 flex flex-col items-center gap-4">
-      <div className="px-6 py-2 md:px-8 md:py-3 bg-slate-900/80 border border-blue-500/30 rounded-2xl flex items-center gap-4">
-        <Presentation className="text-blue-500 w-4 h-4 md:w-5 md:h-5" />
-        <div className="text-[8px] md:text-xs text-blue-100 font-orbitron font-bold tracking-[0.3em]">E-LAB FINAL PRESENTATION // 2025</div>
+      <div className="px-6 py-2 md:px-8 md:py-3 bg-slate-900/80 border border-purple-500/30 rounded-2xl flex items-center gap-4">
+        <Presentation className="text-orange-500 w-4 h-4 md:w-5 md:h-5" />
+        <div className="text-[8px] md:text-xs text-purple-100 font-orbitron font-bold tracking-[0.3em]">E-LAB FINAL PRESENTATION // 2025</div>
       </div>
     </div>
   </div>
@@ -183,15 +183,15 @@ const ProblemStatement = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center h-full px-6 md:px-24 pt-20 md:pt-0">
     <div className="space-y-6 md:space-y-8 text-left">
       <div className="flex items-center gap-4">
-        <div className="p-3 md:p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
-          <ShieldAlert className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+        <div className="p-3 md:p-4 bg-orange-500/10 rounded-2xl border border-orange-500/20">
+          <ShieldAlert className="w-6 h-6 md:w-8 md:h-8 text-orange-500" />
         </div>
-        <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">Problem <span className="text-red-500">Statement</span></h2>
+        <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">Problem <span className="text-orange-500">Statement</span></h2>
       </div>
       
       <div className="bg-slate-900/80 border border-slate-700/50 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-6 md:space-y-8">
         <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
-          According to World Bank data (<span className="text-white font-bold">CEIC 2023</span>) and <span className="text-white font-bold">UNESCO (2024)</span>, about <span className="text-red-500 font-black text-2xl md:text-3xl">30%</span> of Cameroon’s young people are not prepared for success in higher education.
+          According to World Bank data (<span className="text-white font-bold">CEIC 2023</span>) and <span className="text-white font-bold">UNESCO (2024)</span>, about <span className="text-orange-500 font-black text-2xl md:text-3xl">30%</span> of Cameroon’s young people are not prepared for success in higher education.
         </p>
         <div className="h-px bg-slate-800" />
         <p className="text-sm md:text-base text-slate-400 leading-relaxed italic">
@@ -201,16 +201,16 @@ const ProblemStatement = () => (
     </div>
     
     <div className="flex flex-col gap-4 md:gap-6">
-       <div className="glass-panel p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-red-500/20 relative group overflow-hidden text-left">
+       <div className="glass-panel p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-orange-500/20 relative group overflow-hidden text-left">
           <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover:scale-110 transition-transform">
-            <Lock className="w-24 h-24 md:w-32 md:h-32 text-red-500" />
+            <Lock className="w-24 h-24 md:w-32 md:h-32 text-orange-500" />
           </div>
-          <h4 className="font-orbitron text-[8px] md:text-[10px] text-red-500 font-bold mb-2 md:mb-4 tracking-widest">SYSTEMIC_FAILURE</h4>
+          <h4 className="font-orbitron text-[8px] md:text-[10px] text-orange-500 font-bold mb-2 md:mb-4 tracking-widest">SYSTEMIC_FAILURE</h4>
           <div className="text-5xl md:text-7xl font-black text-white mb-2">30%</div>
           <p className="text-xs md:text-base text-slate-400">Total unpreparedness rate in youth demographic.</p>
        </div>
-       <div className="glass-panel p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-blue-500/20 text-left">
-          <h4 className="font-orbitron text-[8px] md:text-[10px] text-blue-500 font-bold mb-2 md:mb-4 tracking-widest">VOLUME_IMPACT</h4>
+       <div className="glass-panel p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-purple-500/20 text-left">
+          <h4 className="font-orbitron text-[8px] md:text-[10px] text-purple-500 font-bold mb-2 md:mb-4 tracking-widest">VOLUME_IMPACT</h4>
           <div className="text-5xl md:text-7xl font-black text-white mb-2">2M+</div>
           <p className="text-xs md:text-base text-slate-400">Students trapped in memorization-heavy cycles annually.</p>
        </div>
@@ -220,9 +220,9 @@ const ProblemStatement = () => (
 
 const ResearchInsights = () => {
   const data = [
-    { name: 'Poor CBA Implementation', val: 40, fill: '#3b82f6' },
-    { name: 'Lack of Materials', val: 10, fill: '#3b82f6' },
-    { name: 'Limited Practicals', val: 5, fill: '#3b82f6' }
+    { name: 'Poor CBA Implementation', val: 40, fill: '#9333ea' },
+    { name: 'Lack of Materials', val: 10, fill: '#f97316' },
+    { name: 'Limited Practicals', val: 5, fill: '#9333ea' }
   ];
 
   return (
@@ -230,7 +230,7 @@ const ResearchInsights = () => {
       <div className="bg-slate-900 border border-slate-700 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px] md:h-auto">
         <div className="absolute top-4 right-6 text-[8px] md:text-[10px] font-orbitron text-slate-600 uppercase tracking-widest">RESEARCH_INTEL_V1</div>
         <h3 className="text-white font-bold mb-6 md:mb-10 uppercase tracking-widest text-xs md:text-sm flex items-center gap-3 italic">
-          <Database className="w-4 h-4 md:w-5 md:h-5 text-blue-500" /> Identified Roadblocks
+          <Database className="w-4 h-4 md:w-5 md:h-5 text-orange-500" /> Identified Roadblocks
         </h3>
         <div className="h-40 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -238,8 +238,8 @@ const ResearchInsights = () => {
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={8} width={110} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px', fontSize: '10px' }}
-                cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }} 
+                contentStyle={{ backgroundColor: '#0f0718', border: '1px solid #334155', borderRadius: '12px', fontSize: '10px' }}
+                cursor={{ fill: 'rgba(147, 51, 234, 0.1)' }} 
               />
               <Bar dataKey="val" radius={[0, 10, 10, 0]} barSize={24}>
                 {data.map((entry, index) => (
@@ -252,9 +252,9 @@ const ResearchInsights = () => {
       </div>
 
       <div className="space-y-6 md:space-y-8 text-left">
-        <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">Research <span className="text-blue-500">Insights</span></h2>
+        <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">Research <span className="text-purple-500">Insights</span></h2>
         
-        <div className="bg-blue-600 p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] relative group overflow-hidden shadow-2xl">
+        <div className="bg-purple-600 p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] relative group overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 p-4 md:p-8 opacity-10">
             <ClipboardCheck className="w-24 h-24 md:w-32 md:h-32 text-white" />
           </div>
@@ -264,7 +264,7 @@ const ResearchInsights = () => {
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Survey Results</h3>
           </div>
-          <p className="text-blue-50 text-xl md:text-2xl leading-relaxed font-medium italic">
+          <p className="text-purple-50 text-xl md:text-2xl leading-relaxed font-medium italic">
             "Based on a primary survey with <span className="text-white font-black underline">55 students</span> and <span className="text-white font-black underline">3 teachers</span>, <span className="text-white font-black text-3xl md:text-4xl">85%</span> report that copying notes is the primary activity."
           </p>
         </div>
@@ -276,16 +276,16 @@ const ResearchInsights = () => {
 const MissionVision = () => (
   <div className="h-full flex flex-col items-center justify-center text-center px-6">
     <div className="mb-10 md:mb-16">
-      <h2 className="text-sm md:text-xl font-orbitron text-blue-500 font-bold tracking-[0.4em] md:tracking-[0.6em] uppercase mb-2 md:mb-4">Core Directive</h2>
+      <h2 className="text-sm md:text-xl font-orbitron text-orange-500 font-bold tracking-[0.4em] md:tracking-[0.6em] uppercase mb-2 md:mb-4">Core Directive</h2>
       <h3 className="text-4xl md:text-8xl font-black text-white italic uppercase tracking-tighter">Our Mission</h3>
     </div>
     
-    <div className="max-w-5xl glass-panel p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] relative shadow-[0_0_100px_rgba(59,130,246,0.1)]">
-      <div className="absolute -top-8 md:-top-12 left-1/2 -translate-x-1/2 w-16 h-16 md:w-24 md:h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.6)]">
+    <div className="max-w-5xl glass-panel p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] relative shadow-[0_0_100px_rgba(147,51,234,0.1)]">
+      <div className="absolute -top-8 md:-top-12 left-1/2 -translate-x-1/2 w-16 h-16 md:w-24 md:h-24 bg-purple-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(147,51,234,0.6)]">
         <Target className="w-8 h-8 md:w-12 md:h-12 text-white" />
       </div>
       <p className="text-2xl md:text-5xl text-white font-light leading-tight italic">
-        "Equip <span className="text-blue-500 font-black">one million</span> secondary school students in Cameroon with higher order thinking skills by <span className="text-blue-500 font-black">2035</span>."
+        "Equip <span className="text-orange-500 font-black">one million</span> secondary school students in Cameroon with higher order thinking skills by <span className="text-purple-500 font-black">2035</span>."
       </p>
     </div>
   </div>
@@ -294,7 +294,7 @@ const MissionVision = () => (
 const ProductGenesis = () => (
   <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
     <div className="mb-10 md:mb-16 text-center">
-      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-blue-500">Genesis</span></h2>
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-orange-500">Genesis</span></h2>
       <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Ecosystem Architecture</p>
     </div>
     
@@ -304,22 +304,22 @@ const ProductGenesis = () => (
           icon: <Gamepad2 />, 
           title: 'Immersive Learning', 
           desc: 'Learn by doing, applying classroom knowledge to real-world community problems in the form of interactive missions.',
-          color: 'bg-blue-600'
+          color: 'bg-purple-600'
         },
         { 
           icon: <Database />, 
           title: 'Skill Tracking', 
           desc: 'AI-powered Skill Passport measures growth in HOTS (Higher Order Thinking Skills) and opportunity applications.',
-          color: 'bg-indigo-600'
+          color: 'bg-orange-600'
         },
         { 
           icon: <Trophy />, 
           title: 'Opportunities', 
           desc: 'Direct connection to competitions, grants, and fellowships to practice skills beyond the digital simulation.',
-          color: 'bg-purple-600'
+          color: 'bg-purple-800'
         }
       ].map((item, i) => (
-        <div key={i} className="glass-panel p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] hover:border-blue-500/50 transition-all group cursor-default text-left">
+        <div key={i} className="glass-panel p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] hover:border-orange-500/50 transition-all group cursor-default text-left">
           <div className={`w-14 h-14 md:w-20 md:h-20 ${item.color} rounded-2xl md:rounded-3xl flex items-center justify-center text-white mb-6 md:mb-10 group-hover:scale-110 transition-transform shadow-2xl`}>
             {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-8 h-8 md:w-10 md:h-10" })}
           </div>
@@ -335,14 +335,14 @@ const RevenueModel = () => (
   <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-12 overflow-y-auto no-scrollbar pb-16">
     <div className="mb-2 md:mb-4 text-center shrink-0">
       <h2 className="text-3xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">
-        <span className="text-blue-500">BUSINESS </span> 
+        <span className="text-purple-500">BUSINESS </span> 
         <span className="text-slate-400">MODEL</span>
       </h2>
       <p className="text-slate-500 mt-1 font-orbitron text-[9px] md:text-xs tracking-[0.4em] uppercase">Fiscal Sustainability & Revenue Architecture</p>
     </div>
 
     <div className="flex justify-center mb-6 md:mb-8 shrink-0">
-      <div className="bg-blue-600/90 backdrop-blur-md px-8 py-1.5 rounded-full font-orbitron text-[9px] md:text-[10px] font-black tracking-[0.3em] shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-blue-400/30 text-white uppercase">
+      <div className="bg-orange-600/90 backdrop-blur-md px-8 py-1.5 rounded-full font-orbitron text-[9px] md:text-[10px] font-black tracking-[0.3em] shadow-[0_0_20px_rgba(249,115,22,0.3)] border border-orange-400/30 text-white uppercase">
         Subscriptions
       </div>
     </div>
@@ -382,19 +382,19 @@ const RevenueModel = () => (
           icon: <Users className="w-3.5 h-3.5" />
         }
       ].map((tier, i) => (
-        <div key={i} className={`glass-panel p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border flex flex-col transition-all duration-500 hover:scale-[1.01] ${tier.highlight ? 'border-blue-500/60 shadow-[0_0_40px_rgba(59,130,246,0.1)] ring-1 ring-blue-500/10 md:scale-105 relative z-10' : 'border-slate-800/30'}`}>
+        <div key={i} className={`glass-panel p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border flex flex-col transition-all duration-500 hover:scale-[1.01] ${tier.highlight ? 'border-orange-500/60 shadow-[0_0_40px_rgba(249,115,22,0.1)] ring-1 ring-orange-500/10 md:scale-105 relative z-10' : 'border-slate-800/30'}`}>
           <div className="flex items-center gap-3 mb-4 md:mb-6">
-             <div className="p-2 bg-blue-600/20 rounded-full text-blue-500 shadow-md">
+             <div className="p-2 bg-purple-600/20 rounded-full text-purple-500 shadow-md">
                 {tier.icon}
              </div>
              <h4 className="text-lg md:text-xl font-black text-white italic uppercase tracking-tighter leading-none">
-               {tier.name} <br/> <span className="text-[9px] md:text-[11px] text-blue-400 opacity-80 font-bold">{tier.price}</span>
+               {tier.name} <br/> <span className="text-[9px] md:text-[11px] text-orange-400 opacity-80 font-bold">{tier.price}</span>
              </h4>
           </div>
           <ul className="space-y-2 md:space-y-3 flex-1">
             {tier.features.map((f, j) => (
               <li key={j} className="flex items-start gap-2 text-slate-400 font-light text-[10px] md:text-[13px] text-left leading-tight italic group">
-                <div className="w-1 md:w-1.5 h-1 md:w-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_6px_rgba(59,130,246,0.8)] transition-all" /> {f}
+                <div className="w-1 md:w-1.5 h-1 md:w-1.5 bg-orange-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_6px_rgba(249,115,22,0.8)] transition-all" /> {f}
               </li>
             ))}
           </ul>
@@ -414,8 +414,8 @@ const RevenueModel = () => (
          { icon: <Megaphone />, label: 'ADVERTISING' },
          { icon: <Briefcase />, label: 'SPONSORSHIPS' }
        ].map((item, idx) => (
-         <div key={idx} className="glass-panel px-6 py-3 rounded-full border-slate-800/30 flex items-center gap-3 hover:border-blue-500/30 transition-all group cursor-pointer hover:bg-blue-600/5">
-            <div className="p-2 bg-slate-800 rounded-full text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+         <div key={idx} className="glass-panel px-6 py-3 rounded-full border-slate-800/30 flex items-center gap-3 hover:border-purple-500/30 transition-all group cursor-pointer hover:bg-purple-600/5">
+            <div className="p-2 bg-slate-800 rounded-full text-orange-500 group-hover:bg-purple-600 group-hover:text-white transition-colors">
                {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-3 h-3" })}
             </div>
             <span className="text-[9px] md:text-[10px] font-black text-slate-300 italic uppercase tracking-tighter leading-none">
@@ -441,7 +441,7 @@ const InterfaceExplorer = () => {
   return (
     <div className="h-full px-6 md:px-10 flex flex-col items-center justify-center pt-16 md:pt-0">
       <div className="text-center mb-6 md:mb-10">
-         <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">System <span className="text-blue-500">Interface</span></h2>
+         <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">System <span className="text-purple-500">Interface</span></h2>
          <p className="text-slate-500 text-[10px] font-orbitron tracking-[0.4em] mt-1 md:mt-2 uppercase">Operational Visualization</p>
       </div>
 
@@ -453,7 +453,7 @@ const InterfaceExplorer = () => {
                   onClick={() => setActive(i)}
                   className={`w-40 md:w-full text-left p-3 md:p-6 rounded-xl md:rounded-2xl transition-all border group relative overflow-hidden flex-shrink-0 md:mb-3 ${
                     active === i 
-                      ? 'bg-blue-600 border-blue-400 text-white shadow-xl' 
+                      ? 'bg-purple-600 border-purple-400 text-white shadow-xl' 
                       : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
                   }`}
                >
@@ -473,18 +473,18 @@ const InterfaceExplorer = () => {
             <div className="bg-slate-950/80 p-3 md:p-5 border-b border-slate-800 flex items-center justify-between backdrop-blur-md">
                <div className="flex gap-1.5 md:gap-2.5">
                   <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-red-500/40" />
-                  <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-yellow-500/40" />
+                  <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-orange-500/40" />
                   <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-green-500/40" />
                </div>
                <div className="flex items-center gap-2">
-                  <Terminal className="w-2 h-2 md:w-3 md:h-3 text-blue-500" />
+                  <Terminal className="w-2 h-2 md:w-3 md:h-3 text-purple-500" />
                   <div className="font-orbitron text-[6px] md:text-[8px] text-slate-500 tracking-[0.4em] md:tracking-[0.6em] uppercase">TERMINAL://{screens[active].title.toUpperCase().replace(/\s+/g, '_')}</div>
                </div>
             </div>
             <div className="flex-1 bg-slate-900 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
                <div className="text-center space-y-4 md:space-y-8 max-w-xl">
                   <div className="w-full aspect-video bg-black/50 rounded-xl md:rounded-2xl border border-white/5 flex items-center justify-center overflow-hidden shadow-inner group">
-                     <div className="flex flex-col items-center text-slate-700 group-hover:text-blue-500/50 transition-colors">
+                     <div className="flex flex-col items-center text-slate-700 group-hover:text-purple-500/50 transition-colors">
                         <Cpu className="w-16 h-16 md:w-32 md:h-32 mb-4 md:mb-6 opacity-5 animate-pulse" />
                         <div className="font-orbitron text-[8px] md:text-[10px] font-black italic tracking-[0.4em] uppercase">ENCODING_VISUAL_FEED</div>
                      </div>
@@ -506,7 +506,7 @@ const InterfaceExplorer = () => {
 const TargetAudience = () => (
   <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
     <div className="mb-10 md:mb-16 text-center">
-      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Strategic <span className="text-blue-500">Demographics</span></h2>
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Strategic <span className="text-purple-500">Demographics</span></h2>
       <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Target Vector Analysis</p>
     </div>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto overflow-y-auto no-scrollbar">
@@ -515,8 +515,8 @@ const TargetAudience = () => (
         { icon: <School />, title: 'Educators', desc: 'Institutions requiring advanced pedagogical tools to implement Competency Based Approach.' },
         { icon: <HeartHandshake />, title: 'Parents', desc: 'Stakeholders invested in long-term economic success and measurable skill growth.' }
       ].map((item, i) => (
-        <div key={i} className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border-blue-500/10 group hover:border-blue-500/40 transition-all text-left">
-          <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600/20 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 mb-4 md:mb-8 group-hover:scale-110 transition-transform">
+        <div key={i} className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border-purple-500/10 group hover:border-orange-500/40 transition-all text-left">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-600/20 rounded-xl md:rounded-2xl flex items-center justify-center text-orange-500 mb-4 md:mb-8 group-hover:scale-110 transition-transform">
             {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-6 h-6 md:w-8 md:h-8" })}
           </div>
           <h4 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4 italic uppercase">{item.title}</h4>
@@ -530,17 +530,17 @@ const TargetAudience = () => (
 const MarketOpportunity = () => {
   const data = [
     { name: 'TAM', value: 16.8, label: '$16.8M', fill: '#1e293b' },
-    { name: 'SAM', value: 1.4, label: '$1.4M', fill: '#3b82f6' },
-    { name: 'SOM (Y1)', value: 0.1, label: '$100k', fill: '#06b6d4' }
+    { name: 'SAM', value: 1.4, label: '$1.4M', fill: '#9333ea' },
+    { name: 'SOM (Y1)', value: 0.1, label: '$100k', fill: '#f97316' }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center h-full px-6 md:px-24 pt-20 md:pt-0">
       <div className="space-y-6 md:space-y-8 text-left">
-        <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Market <span className="text-blue-500">Capacity</span></h2>
+        <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Market <span className="text-orange-500">Capacity</span></h2>
         <div className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-4 md:space-y-6">
           <div className="flex items-center gap-4 md:gap-6">
-            <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white">
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-purple-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white">
               <BarChart3 className="w-5 h-5 md:w-7 md:h-7" />
             </div>
             <div>
@@ -558,7 +558,7 @@ const MarketOpportunity = () => {
             <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
             <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '16px', fontSize: '10px' }}
+              contentStyle={{ backgroundColor: '#0f0718', border: '1px solid #334155', borderRadius: '16px', fontSize: '10px' }}
               itemStyle={{ color: '#fff' }}
             />
             <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={40}>
@@ -574,7 +574,7 @@ const MarketOpportunity = () => {
 const AcquisitionStrategy = () => (
   <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
     <div className="mb-10 md:mb-16 text-center">
-      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Infection <span className="text-blue-500">Vector</span></h2>
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Infection <span className="text-orange-500">Vector</span></h2>
       <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Go-To-Market Protocol</p>
     </div>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 max-w-7xl mx-auto">
@@ -584,7 +584,7 @@ const AcquisitionStrategy = () => (
         { icon: <Globe />, title: 'Digital Engine', desc: 'Precision targeting on TikTok, Instagram, and WhatsApp for youth conversion.' }
       ].map((item, i) => (
         <div key={i} className="flex flex-col items-center text-center group">
-          <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-blue-500 mb-6 md:mb-8 group-hover:border-blue-500 transition-all shadow-2xl group-hover:bg-blue-600/5">
+          <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-orange-500 mb-6 md:mb-8 group-hover:border-purple-500 transition-all shadow-2xl group-hover:bg-purple-600/5">
             {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-8 h-8 md:w-12 md:h-12" })}
           </div>
           <h4 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4 uppercase italic">{item.title}</h4>
@@ -607,45 +607,40 @@ const Financials = () => {
 
   return (
     <div className="h-full w-full relative flex flex-col items-center justify-center p-4 md:p-10 text-white overflow-hidden pt-16 md:pt-10">
-      {/* Background Decor Adapted to Dark Theme */}
       <div className="absolute top-0 left-0 w-full h-full opacity-[0.1] pointer-events-none z-0">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale" />
       </div>
       
-      {/* Blue Spiral Ornament - Scaled down to fit */}
       <div className="absolute left-[-100px] top-[10%] opacity-15 pointer-events-none z-0 hidden md:block">
          <svg width="400" height="600" viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-90">
-            <path d="M50 500C150 450 350 350 350 200C350 50 150 50 100 150C50 250 150 350 250 350C350 350 450 200 400 100" stroke="#3b82f6" strokeWidth="35" strokeLinecap="round" />
+            <path d="M50 500C150 450 350 350 350 200C350 50 150 50 100 150C50 250 150 350 250 350C350 350 450 200 400 100" stroke="#9333ea" strokeWidth="35" strokeLinecap="round" />
          </svg>
       </div>
 
       <div className="relative z-10 w-full max-w-6xl flex flex-col items-center">
-        <h2 className="text-3xl md:text-5xl font-black text-center mb-6 md:mb-12 tracking-tight uppercase italic">COST <span className="text-blue-500">BREAKDOWN</span></h2>
+        <h2 className="text-3xl md:text-5xl font-black text-center mb-6 md:mb-12 tracking-tight uppercase italic">COST <span className="text-orange-500">BREAKDOWN</span></h2>
         
         <div className="flex flex-col lg:flex-row items-center justify-center gap-6 md:gap-12 w-full">
-          {/* Main Table Styled for Dark Mode */}
           <div className="w-full max-w-[640px] bg-slate-900 border-[4px] md:border-[6px] border-white/20 shadow-2xl overflow-hidden">
-            <div className="grid grid-cols-[1fr_180px] md:grid-cols-[1fr_240px] bg-[#3b82f6] border-b-[4px] md:border-b-[6px] border-white/20 text-white font-bold py-2.5 md:py-4 text-center uppercase tracking-widest text-xs md:text-base">
+            <div className="grid grid-cols-[1fr_180px] md:grid-cols-[1fr_240px] bg-[#9333ea] border-b-[4px] md:border-b-[6px] border-white/20 text-white font-bold py-2.5 md:py-4 text-center uppercase tracking-widest text-xs md:text-base">
               <div>ITEM</div>
               <div className="border-l-[4px] md:border-l-[6px] border-white/20">AMOUNT</div>
             </div>
             {items.map((row, i) => (
               <div key={i} className={`grid grid-cols-[1fr_180px] md:grid-cols-[1fr_240px] border-b-[4px] md:border-b-[6px] border-white/10 last:border-b-0 text-center py-2 md:py-4 font-semibold text-[10px] md:text-base ${i % 2 === 0 ? 'bg-slate-900/50' : 'bg-slate-800/50'}`}>
                 <div className="flex items-center justify-center px-4 md:px-6 text-slate-100">{row.item}</div>
-                <div className="border-l-[4px] md:border-l-[6px] border-white/10 flex items-center justify-center font-bold text-blue-400">{row.amount}</div>
+                <div className="border-l-[4px] md:border-l-[6px] border-white/10 flex items-center justify-center font-bold text-orange-400">{row.amount}</div>
               </div>
             ))}
           </div>
 
-          {/* Total Highlight Card Styled for Dark Mode */}
-          <div className="bg-[#3b82f6] rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-12 shadow-[0_0_50px_rgba(59,130,246,0.3)] border-[4px] md:border-[6px] border-white/20 flex items-center justify-center md:min-w-[280px]">
+          <div className="bg-[#f97316] rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-12 shadow-[0_0_50px_rgba(249,115,22,0.3)] border-[4px] md:border-[6px] border-white/20 flex items-center justify-center md:min-w-[280px]">
             <div className="text-3xl md:text-6xl font-black text-white whitespace-nowrap tracking-tight italic">7,510 USD</div>
           </div>
         </div>
       </div>
 
-      {/* Slide Index Box (Matches Template Style) */}
-      <div className="absolute bottom-6 right-6 bg-[#3b82f6] w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-white font-black text-xl md:text-2xl shadow-[0_0_20px_rgba(59,130,246,0.5)] border-2 border-white/20 z-10">
+      <div className="absolute bottom-6 right-6 bg-[#9333ea] w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-white font-black text-xl md:text-2xl shadow-[0_0_20px_rgba(147,51,234,0.5)] border-2 border-white/20 z-10">
         11
       </div>
     </div>
@@ -655,7 +650,7 @@ const Financials = () => {
 const TheSquad = () => (
   <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
     <div className="mb-10 md:mb-16 text-center">
-      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-blue-500">Architects</span></h2>
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-orange-500">Architects</span></h2>
       <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Team S.C.A.A.M Command</p>
     </div>
     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto overflow-y-auto no-scrollbar max-h-[60vh] md:max-h-none">
@@ -666,14 +661,14 @@ const TheSquad = () => (
         { name: 'Abdulkadir Abduljabar', role: 'Impact Lead', origin: 'Rwanda' },
         { name: 'Marylene Sugira', role: 'Designer', origin: 'Mozambique' }
       ].map((member, i) => (
-        <div key={i} className="glass-panel p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center text-center group hover:bg-blue-600/5 transition-all">
-          <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-900 rounded-2xl md:rounded-3xl mb-4 md:mb-6 overflow-hidden relative border border-slate-800 group-hover:border-blue-500 transition-colors shadow-2xl">
-            <div className="absolute inset-0 flex items-center justify-center text-slate-700 group-hover:text-blue-500 transition-colors">
+        <div key={i} className="glass-panel p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center text-center group hover:bg-orange-600/5 transition-all">
+          <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-900 rounded-2xl md:rounded-3xl mb-4 md:mb-6 overflow-hidden relative border border-slate-800 group-hover:border-orange-500 transition-colors shadow-2xl">
+            <div className="absolute inset-0 flex items-center justify-center text-slate-700 group-hover:text-purple-500 transition-colors">
               <Users className="w-8 h-8 md:w-12 md:h-12" />
             </div>
           </div>
           <h4 className="text-white font-bold leading-tight mb-1 text-[10px] md:text-sm">{member.name}</h4>
-          <div className="text-[7px] md:text-[9px] font-orbitron text-blue-500 font-bold uppercase tracking-widest mb-1 md:mb-2">{member.role}</div>
+          <div className="text-[7px] md:text-[9px] font-orbitron text-purple-500 font-bold uppercase tracking-widest mb-1 md:mb-2">{member.role}</div>
           <div className="text-[6px] md:text-[8px] text-slate-500 uppercase tracking-tighter">{member.origin}</div>
         </div>
       ))}
@@ -683,20 +678,20 @@ const TheSquad = () => (
 
 const CallToAction = () => (
   <div className="h-full flex flex-col items-center justify-center text-center px-6 pt-16 md:pt-0">
-    <div className="glass-panel p-10 md:p-20 rounded-[2.5rem] md:rounded-[5rem] border-blue-500/30 max-w-5xl relative overflow-hidden shadow-2xl">
+    <div className="glass-panel p-10 md:p-20 rounded-[2.5rem] md:rounded-[5rem] border-purple-500/30 max-w-5xl relative overflow-hidden shadow-2xl">
       <div className="absolute top-0 right-0 p-8 md:p-12 opacity-5">
-        <Rocket className="w-32 h-32 md:w-64 md:h-64 text-blue-500" />
+        <Rocket className="w-32 h-32 md:w-64 md:h-64 text-orange-500" />
       </div>
-      <h2 className="text-4xl md:text-7xl font-black text-white italic uppercase tracking-tighter mb-4 md:mb-8">Authorize the <span className="text-blue-500 italic">Mission</span></h2>
+      <h2 className="text-4xl md:text-7xl font-black text-white italic uppercase tracking-tighter mb-4 md:mb-8">Authorize the <span className="text-orange-500 italic">Mission</span></h2>
       <p className="text-lg md:text-3xl text-slate-300 font-light leading-relaxed italic mb-8 md:mb-12 max-w-3xl mx-auto">
-        Join us in transforming education for <span className="text-white font-black underline decoration-blue-500 decoration-4 underline-offset-8">50,000 students</span> in the next 3 years.
+        Join us in transforming education for <span className="text-white font-black underline decoration-purple-500 decoration-4 underline-offset-8">50,000 students</span> in the next 3 years.
       </p>
       <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center">
-        <div className="px-6 py-4 md:px-10 md:py-6 bg-blue-600 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 shadow-2xl hover:scale-105 transition-transform cursor-pointer">
+        <div className="px-6 py-4 md:px-10 md:py-6 bg-purple-600 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 shadow-2xl hover:scale-105 transition-transform cursor-pointer">
           <Mail className="w-5 h-5 md:w-6 md:h-6 text-white" />
           <span className="text-white font-bold italic tracking-tight text-sm md:text-base">contact@missiongenesis.ai</span>
         </div>
-        <div className="px-6 py-4 md:px-10 md:py-6 bg-slate-900 border border-slate-700 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 hover:border-slate-500 transition-all cursor-pointer">
+        <div className="px-6 py-4 md:px-10 md:py-6 bg-slate-900 border border-slate-700 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 hover:border-orange-500 transition-all cursor-pointer">
           <Globe className="w-5 h-5 md:w-6 md:h-6 text-slate-400" />
           <span className="text-slate-300 font-bold italic tracking-tight text-sm md:text-base">missiongenesis.africa</span>
         </div>
@@ -714,39 +709,34 @@ const Sources = () => {
 
   return (
     <div className="h-full w-full relative flex flex-col items-center justify-center p-4 md:p-10 text-white overflow-hidden pt-16 md:pt-10">
-      {/* Background Cityscape */}
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.1] grayscale pointer-events-none" />
       
-      {/* Blue Spiral Ornament '9' in Background */}
       <div className="absolute left-[-150px] top-[15%] opacity-20 pointer-events-none z-0 hidden md:block">
          <svg width="500" height="700" viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-100 rotate-[-10deg]">
-            <path d="M50 500C150 450 350 350 350 200C350 50 150 50 100 150C50 250 150 350 250 350C350 350 450 200 400 100" stroke="#3b82f6" strokeWidth="40" strokeLinecap="round" />
+            <path d="M50 500C150 450 350 350 350 200C350 50 150 50 100 150C50 250 150 350 250 350C350 350 450 200 400 100" stroke="#9333ea" strokeWidth="40" strokeLinecap="round" />
          </svg>
       </div>
 
       <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
-        {/* Title Area with vertical blue bar */}
         <div className="flex items-center gap-4 mb-10">
-          <div className="w-2.5 h-12 bg-blue-600 rounded-sm shadow-[0_0_20px_rgba(59,130,246,0.6)]" />
+          <div className="w-2.5 h-12 bg-purple-600 rounded-sm shadow-[0_0_20px_rgba(147,51,234,0.6)]" />
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">REFERENCES</h2>
         </div>
         
-        {/* Main Content Box Styled for Cyber Theme */}
         <div 
-          className="relative w-full bg-[#3b82f6] border-[4px] md:border-[6px] border-emerald-400 p-8 md:p-12 shadow-[0_0_60px_rgba(59,130,246,0.2)] rounded-sm overflow-hidden"
+          className="relative w-full bg-[#9333ea] border-[4px] md:border-[6px] border-orange-400 p-8 md:p-12 shadow-[0_0_60px_rgba(147,51,234,0.2)] rounded-sm overflow-hidden"
           style={{
             backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)`,
             backgroundSize: '20px 20px'
           }}
         >
-           {/* 'SA' Badge in Emerald */}
-           <div className="absolute top-0 right-0 bg-emerald-400 px-4 py-1.5 text-slate-900 font-black text-xs md:text-sm uppercase shadow-lg z-20">
+           <div className="absolute top-0 right-0 bg-orange-400 px-4 py-1.5 text-slate-900 font-black text-xs md:text-sm uppercase shadow-lg z-20">
              SA
            </div>
 
            <ul className="space-y-6 md:space-y-10 relative z-10">
              {refs.map((r, i) => (
-               <li key={i} className="flex gap-5 items-start text-xs md:text-lg leading-relaxed text-blue-50 font-semibold italic text-left">
+               <li key={i} className="flex gap-5 items-start text-xs md:text-lg leading-relaxed text-purple-50 font-semibold italic text-left">
                  <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-white rounded-full mt-2 md:mt-3 shrink-0 shadow-md" />
                  <span>{r.text}</span>
                </li>
@@ -755,8 +745,7 @@ const Sources = () => {
         </div>
       </div>
 
-      {/* Slide Index Box (Matches mockup index corner) */}
-      <div className="absolute bottom-6 right-6 bg-[#3b82f6] w-14 h-14 md:w-16 md:h-16 flex items-center justify-center text-white font-black text-xl md:text-3xl shadow-[0_0_30px_rgba(59,130,246,0.4)] border-2 border-white/20 z-10">
+      <div className="absolute bottom-6 right-6 bg-[#9333ea] w-14 h-14 md:w-16 md:h-16 flex items-center justify-center text-white font-black text-xl md:text-3xl shadow-[0_0_30px_rgba(147,51,234,0.4)] border-2 border-white/20 z-10">
         14
       </div>
     </div>
@@ -765,16 +754,16 @@ const Sources = () => {
 
 const Annexes = () => (
   <div className="h-full px-6 md:px-10 flex flex-col justify-center items-center pt-16 md:pt-0">
-    <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-10 md:mb-16">Operational <span className="text-blue-500">Annexes</span></h2>
+    <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-10 md:mb-16">Operational <span className="text-orange-500">Annexes</span></h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-y-auto no-scrollbar max-h-[60vh] md:max-h-none">
       {[
         { icon: <Terminal />, title: 'Tech Stack', list: ['React Architecture', 'Tailwind CSS UI', 'Gemini Neural Link', 'Simulation Engine'] },
         { icon: <Map />, title: 'Expansion', list: ['Alpha Pilot: Q1 2025', 'Market Scale: Q4 2025', 'Regional Sync: 2026', 'Impact Metric V3'] },
         { icon: <ShieldCheck />, title: 'Compliance', list: ['GDPR Protocol', 'Student Safety', 'MINSEC Curricula', 'Skill Verify'] }
       ].map((a, i) => (
-        <div key={i} className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border-slate-800/50 hover:border-blue-500/20 transition-all text-left">
+        <div key={i} className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border-slate-800/50 hover:border-purple-500/20 transition-all text-left">
           <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8">
-            <div className="p-2 md:p-4 bg-slate-900 rounded-xl text-blue-500 border border-slate-700 shadow-xl">
+            <div className="p-2 md:p-4 bg-slate-900 rounded-xl text-orange-500 border border-slate-700 shadow-xl">
               {React.cloneElement(a.icon as React.ReactElement<any>, { className: "w-4 h-4 md:w-6 md:h-6" })}
             </div>
             <h4 className="text-sm md:text-lg font-bold text-white uppercase italic tracking-tight">{a.title}</h4>
@@ -782,7 +771,7 @@ const Annexes = () => (
           <ul className="space-y-2 md:space-y-4">
             {a.list.map((item, j) => (
               <li key={j} className="text-slate-500 font-light flex items-center gap-2 md:gap-3 text-[10px] md:text-xs italic">
-                <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-blue-500 rounded-full shadow-[0_0_5px_rgba(59,130,246,1)] shrink-0" /> {item}
+                <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-purple-500 rounded-full shadow-[0_0_5px_rgba(147,51,234,1)] shrink-0" /> {item}
               </li>
             ))}
           </ul>
@@ -794,35 +783,29 @@ const Annexes = () => (
 
 const ThankYou = () => (
   <div className="h-full w-full relative flex items-center justify-center overflow-hidden animate-in fade-in duration-1000">
-    {/* Full Screen Background Team Photo */}
     <div className="absolute inset-0 z-0">
       <img 
         src="https://i.ibb.co/wHJVBSv/S-B-4.jpg" 
         alt="Team S.C.A.A.M Mission Genesis" 
         className="w-full h-full object-cover"
       />
-      {/* HUD overlay style vignette/tint */}
       <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
-      {/* Scanline pattern overlay directly on image */}
       <div className="absolute inset-0 opacity-20 pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 4px, 3px 100%' }} />
+           style={{ backgroundImage: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 165, 0, 0.06), rgba(147, 51, 234, 0.02), rgba(255, 69, 0, 0.06))', backgroundSize: '100% 4px, 3px 100%' }} />
     </div>
 
-    {/* Content Overlay - Blue Dashed Rectangle */}
     <div className="relative z-10 w-full max-w-7xl px-6 md:px-20 h-full flex flex-col items-center justify-center">
-       <div className="w-full border-[3px] md:border-[4px] border-dashed border-blue-500/80 rounded-sm p-8 md:p-16 relative flex flex-col justify-end items-start group shadow-[0_0_40px_rgba(59,130,246,0.2)]">
-          {/* Futuristic corner accent */}
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-400 -translate-x-2 -translate-y-2 opacity-60" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400 translate-x-2 translate-y-2 opacity-60" />
+       <div className="w-full border-[3px] md:border-[4px] border-dashed border-orange-500/80 rounded-sm p-8 md:p-16 relative flex flex-col justify-end items-start group shadow-[0_0_40px_rgba(249,115,22,0.2)]">
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-orange-400 -translate-x-2 -translate-y-2 opacity-60" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-orange-400 translate-x-2 translate-y-2 opacity-60" />
           
-          <h2 className="text-4xl md:text-7xl font-orbitron font-black text-blue-400 tracking-tighter italic drop-shadow-[0_0_20px_rgba(59,130,246,1)]">
+          <h2 className="text-4xl md:text-7xl font-orbitron font-black text-orange-400 tracking-tighter italic drop-shadow-[0_0_20px_rgba(249,115,22,1)]">
             Thank You .
           </h2>
        </div>
     </div>
 
-    {/* Extra bottom index decoration (Match mockup's bottom-right 16) */}
-    <div className="absolute bottom-6 right-6 w-14 h-14 md:w-16 md:h-16 bg-[#3b82f6] border-2 border-white/20 flex items-center justify-center text-white font-black text-2xl md:text-3xl shadow-[0_0_40px_rgba(59,130,246,0.6)] z-20">
+    <div className="absolute bottom-6 right-6 w-14 h-14 md:w-16 md:h-16 bg-[#9333ea] border-2 border-white/20 flex items-center justify-center text-white font-black text-2xl md:text-3xl shadow-[0_0_40px_rgba(147,51,234,0.6)] z-20">
       16
     </div>
   </div>
@@ -862,9 +845,9 @@ const App: React.FC = () => {
     { name: 'Cost Breakdown', component: <Financials /> },
     { name: 'Mission Architects', component: <TheSquad /> },
     { name: 'Final Directive', component: <CallToAction /> },
-    { name: 'Operational Sources', component: <Sources /> }, // Phase 14
-    { name: 'Annexes', component: <Annexes /> }, // Phase 15
-    { name: 'Conclusion', component: <ThankYou /> } // Phase 16
+    { name: 'Operational Sources', component: <Sources /> }, 
+    { name: 'Annexes', component: <Annexes /> }, 
+    { name: 'Conclusion', component: <ThankYou /> } 
   ];
 
   const next = useCallback(() => setCurrentSlide(s => Math.min(s + 1, slides.length - 1)), [slides.length]);
@@ -892,7 +875,6 @@ const App: React.FC = () => {
     const ctx = audioContextRef.current!;
     const gain = gainNodeRef.current!;
     
-    // Sanitize text for TTS and phonetic replacement for "S.C.A.A.M"
     const sanitizedText = text.replace(/S\.C\.A\.A\.M/g, "Scam").replace(/[*_#~]/g, '').trim();
 
     if (currentSourceRef.current) {
@@ -903,15 +885,14 @@ const App: React.FC = () => {
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      // Use simplified contents string for TTS model to avoid complex object interpretation issues
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: sanitizedText.substring(0, 1000), 
         config: {
-          responseModalities: ['AUDIO'], // Use string literal to ensure correct parsing
+          responseModalities: ['AUDIO'], 
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Kore' }, // Professional female voice
+              prebuiltVoiceConfig: { voiceName: 'Kore' }, 
             },
           },
         },
@@ -958,7 +939,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Auto-greeting trigger: Immediate upon open
   useEffect(() => {
     if (aiOpen && !hasGreeted) {
       speak(initialGreeting, 'intro');
@@ -976,7 +956,7 @@ const App: React.FC = () => {
     const responseText = await askPitchAssistant(userText);
     const cleanedResponse = responseText || "Neural link unstable. Please repeat the query.";
     
-    const newAiIndex = Date.now(); // Use timestamp as unique ID for log tracking
+    const newAiIndex = Date.now(); 
     setChatLog(prev => [...prev, { role: 'ai', text: cleanedResponse }]);
     setIsTyping(false);
     
@@ -993,7 +973,7 @@ const App: React.FC = () => {
   }, [next, prev]);
 
   return (
-    <div className="w-screen h-screen overflow-hidden relative select-none bg-slate-950">
+    <div className="w-screen h-screen overflow-hidden relative select-none bg-slate-950 text-white">
       <MissionHUD 
         phase={slides[currentSlide].name} 
         progress={((currentSlide + 1) / slides.length) * 100} 
@@ -1011,14 +991,14 @@ const App: React.FC = () => {
         <button 
           onClick={prev}
           disabled={currentSlide === 0}
-          className="w-10 h-10 md:w-12 md:h-12 rounded-full glass-panel flex items-center justify-center text-white hover:bg-blue-600/30 disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full glass-panel flex items-center justify-center text-white hover:bg-purple-600/30 disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
         >
           <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
         </button>
         <button 
           onClick={next}
           disabled={currentSlide === slides.length - 1}
-          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)] disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-orange-600 flex items-center justify-center text-white hover:bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)] disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
         >
           <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
         </button>
@@ -1026,15 +1006,14 @@ const App: React.FC = () => {
 
       <GameMenu current={currentSlide} total={slides.length} onSelect={setCurrentSlide} />
 
-      {/* AI Strategic Neural Node - Resized for better UX */}
       <div className={`fixed left-4 bottom-4 md:left-8 md:bottom-10 z-[60] transition-all duration-700 ease-in-out ${aiOpen ? 'w-[230px] md:w-[310px] h-[340px] md:h-[460px]' : 'w-10 h-10 md:w-12 md:h-12'}`}>
         {aiOpen ? (
-          <div className="w-full h-full glass-panel rounded-[1.2rem] md:rounded-[1.5rem] p-3 md:p-4 flex flex-col shadow-[0_0_60px_rgba(59,130,246,0.1)] border-blue-500/20 relative">
+          <div className="w-full h-full glass-panel rounded-[1.2rem] md:rounded-[1.5rem] p-3 md:p-4 flex flex-col shadow-[0_0_60px_rgba(147,51,234,0.1)] border-purple-500/20 relative">
             
             {playbackProgress > 0 && (
               <div className="absolute top-0 left-0 w-full h-1 z-20 pointer-events-none rounded-t-[1.2rem] md:rounded-t-[1.5rem] overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-600 via-cyan-400 to-white shadow-[0_0_10px_rgba(59,130,246,0.8)] transition-all duration-100 ease-linear"
+                  className="h-full bg-gradient-to-r from-purple-600 via-orange-400 to-white shadow-[0_0_10px_rgba(147,51,234,0.8)] transition-all duration-100 ease-linear"
                   style={{ width: `${playbackProgress}%` }}
                 />
               </div>
@@ -1042,13 +1021,13 @@ const App: React.FC = () => {
 
             <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
               <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 md:w-9 md:h-9 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg transition-transform ${currentlyPlayingId !== null ? 'scale-105' : ''}`}>
+                <div className={`w-7 h-7 md:w-9 md:h-9 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg transition-transform ${currentlyPlayingId !== null ? 'scale-105' : ''}`}>
                   {currentlyPlayingId !== null ? <Waves className="w-3.5 h-3.5 md:w-4 md:h-4 text-white animate-[pulse_0.5s_infinite]" /> : <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />}
                 </div>
                 <div className="text-left">
-                  <div className="font-orbitron text-[6px] md:text-[8px] text-blue-400 font-bold tracking-[0.1em] uppercase">DAWN V1.2</div>
+                  <div className="font-orbitron text-[6px] md:text-[8px] text-purple-400 font-bold tracking-[0.1em] uppercase">DAWN V1.2</div>
                   <div className="text-[5px] md:text-[7px] text-slate-500 uppercase tracking-widest flex items-center gap-1 mt-0.5 leading-none">
-                    <Activity className={`w-1.5 h-1.5 ${currentlyPlayingId !== null ? 'text-blue-400 animate-pulse' : 'text-green-500'}`} /> {currentlyPlayingId !== null ? 'REPLAYING' : 'STABLE'}
+                    <Activity className={`w-1.5 h-1.5 ${currentlyPlayingId !== null ? 'text-orange-400 animate-pulse' : 'text-green-500'}`} /> {currentlyPlayingId !== null ? 'REPLAYING' : 'STABLE'}
                   </div>
                 </div>
               </div>
@@ -1056,7 +1035,7 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-1 bg-slate-900/50 p-1 rounded-md border border-white/5">
                    <button 
                     onClick={() => setIsMuted(!isMuted)}
-                    className={`p-0.5 transition-all ${isMuted ? 'text-red-400' : 'text-blue-400 hover:text-white'}`}
+                    className={`p-0.5 transition-all ${isMuted ? 'text-red-400' : 'text-purple-400 hover:text-white'}`}
                   >
                     {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                   </button>
@@ -1065,7 +1044,7 @@ const App: React.FC = () => {
                     min="0" max="1" step="0.01" 
                     value={volume}
                     onChange={(e) => setVolume(parseFloat(e.target.value))}
-                    className="w-6 md:w-8 h-1 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+                    className="w-6 md:w-8 h-1 bg-slate-700 rounded-full appearance-none cursor-pointer accent-purple-500"
                   />
                 </div>
                 <button 
@@ -1078,9 +1057,9 @@ const App: React.FC = () => {
             </div>
             
             <div className="flex-1 overflow-y-auto space-y-3 mb-3 scrollbar-hide pr-1">
-              <div className="bg-blue-600/5 p-3 rounded-[0.8rem] border border-blue-500/10 text-blue-50 text-[9px] md:text-[11px] leading-relaxed italic relative text-left">
+              <div className="bg-purple-600/5 p-3 rounded-[0.8rem] border border-purple-500/10 text-purple-50 text-[9px] md:text-[11px] leading-relaxed italic relative text-left">
                 <div className="absolute top-2.5 left-2.5">
-                  <div className={`p-0.5 rounded-sm transition-colors ${currentlyPlayingId === 'intro' ? 'bg-cyan-500' : 'bg-blue-600'}`}>
+                  <div className={`p-0.5 rounded-sm transition-colors ${currentlyPlayingId === 'intro' ? 'bg-orange-500' : 'bg-purple-600'}`}>
                     <MessageSquare className="w-2.5 h-2.5 text-white" />
                   </div>
                 </div>
@@ -1089,7 +1068,7 @@ const App: React.FC = () => {
                   <div className="mt-2.5 flex items-center gap-2">
                     <button 
                       onClick={() => speak(initialGreeting, 'intro')}
-                      className={`flex items-center gap-1.5 text-[7px] md:text-[9px] text-white transition-all px-2.5 py-1.5 rounded-full font-bold uppercase tracking-wider shadow-md active:scale-95 ${currentlyPlayingId === 'intro' ? 'bg-cyan-600' : 'bg-blue-600 hover:bg-blue-500'}`}
+                      className={`flex items-center gap-1.5 text-[7px] md:text-[9px] text-white transition-all px-2.5 py-1.5 rounded-full font-bold uppercase tracking-wider shadow-md active:scale-95 ${currentlyPlayingId === 'intro' ? 'bg-orange-600' : 'bg-purple-600 hover:bg-purple-500'}`}
                     >
                       <PlayCircle className={`w-3 h-3 ${currentlyPlayingId === 'intro' ? 'animate-spin' : ''}`} /> 
                       REPLAY INTRO
@@ -1102,24 +1081,24 @@ const App: React.FC = () => {
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
                   <div className={`max-w-[95%] p-2.5 rounded-[0.8rem] text-[9px] md:text-[11px] leading-relaxed font-light text-left relative overflow-hidden transition-all ${
                     msg.role === 'user' 
-                      ? 'bg-blue-600 text-white shadow-md rounded-tr-none border border-blue-400/20' 
-                      : `bg-slate-900/80 border text-blue-50 shadow-inner rounded-tl-none flex flex-col gap-1.5 ${currentlyPlayingId === i ? 'border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.1)]' : 'border-blue-500/10'}`
+                      ? 'bg-purple-600 text-white shadow-md rounded-tr-none border border-purple-400/20' 
+                      : `bg-slate-900/80 border text-purple-50 shadow-inner rounded-tl-none flex flex-col gap-1.5 ${currentlyPlayingId === i ? 'border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.1)]' : 'border-purple-500/10'}`
                   }`}>
                     <div>{msg.text}</div>
                     {msg.role === 'ai' && (
                       <div className="flex items-center justify-between mt-1">
                         <button 
                           onClick={() => speak(msg.text, i)}
-                          className={`flex items-center gap-1 text-[7px] md:text-[9px] transition-all px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${currentlyPlayingId === i ? 'bg-cyan-500/10 text-cyan-400' : 'bg-blue-400/5 text-blue-400 hover:bg-blue-600 hover:text-white'}`}
+                          className={`flex items-center gap-1 text-[7px] md:text-[9px] transition-all px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${currentlyPlayingId === i ? 'bg-orange-500/10 text-orange-400' : 'bg-purple-400/5 text-purple-400 hover:bg-purple-600 hover:text-white'}`}
                         >
                           <Volume2 className={`w-2.5 h-2.5 ${currentlyPlayingId === i ? 'animate-pulse' : ''}`} /> 
                           {currentlyPlayingId === i ? 'Playing' : 'Listen'}
                         </button>
                         {currentlyPlayingId === i && (
                           <div className="flex gap-0.5 items-end h-2">
-                             <div className="w-0.5 bg-cyan-400 animate-[waves_0.9s_ease-in-out_infinite]" style={{ height: '40%' }} />
-                             <div className="w-0.5 bg-cyan-400 animate-[waves_0.6s_ease-in-out_infinite]" style={{ height: '100%' }} />
-                             <div className="w-0.5 bg-cyan-400 animate-[waves_1.1s_ease-in-out_infinite]" style={{ height: '60%' }} />
+                             <div className="w-0.5 bg-orange-400 animate-[waves_0.9s_ease-in-out_infinite]" style={{ height: '40%' }} />
+                             <div className="w-0.5 bg-orange-400 animate-[waves_0.6s_ease-in-out_infinite]" style={{ height: '100%' }} />
+                             <div className="w-0.5 bg-orange-400 animate-[waves_1.1s_ease-in-out_infinite]" style={{ height: '60%' }} />
                           </div>
                         )}
                       </div>
@@ -1129,26 +1108,26 @@ const App: React.FC = () => {
               ))}
               {isTyping && (
                 <div className="flex gap-1 p-1 items-center">
-                  <div className="w-1 bg-blue-500 rounded-full animate-bounce h-1" />
-                  <div className="w-1 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s] h-1" />
-                  <div className="w-1 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s] h-1" />
+                  <div className="w-1 bg-purple-500 rounded-full animate-bounce h-1" />
+                  <div className="w-1 bg-purple-500 rounded-full animate-bounce [animation-delay:0.2s] h-1" />
+                  <div className="w-1 bg-purple-500 rounded-full animate-bounce [animation-delay:0.4s] h-1" />
                 </div>
               )}
             </div>
             
             <div className="relative group mt-auto">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full blur opacity-10 group-focus-within:opacity-20 transition-opacity" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-orange-400 rounded-full blur opacity-10 group-focus-within:opacity-20 transition-opacity" />
               <div className="relative flex items-center">
                 <input 
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAiAsk()}
                   placeholder="Intel query..." 
-                  className="w-full bg-slate-950 border border-slate-800 rounded-full px-3.5 py-2 md:py-2.5 text-[9px] md:text-[10px] text-white outline-none focus:border-blue-500 transition-all pr-10 md:pr-11"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-full px-3.5 py-2 md:py-2.5 text-[9px] md:text-[10px] text-white outline-none focus:border-purple-500 transition-all pr-10 md:pr-11"
                 />
                 <button 
                   onClick={handleAiAsk}
-                  className="absolute right-1.5 p-1.5 md:p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition-all shadow-md active:scale-90 text-white"
+                  className="absolute right-1.5 p-1.5 md:p-2 bg-purple-600 rounded-full hover:bg-purple-500 transition-all shadow-md active:scale-90 text-white"
                 >
                   <Rocket className="w-3 h-3 md:w-3.5 md:h-3.5" />
                 </button>
@@ -1158,10 +1137,10 @@ const App: React.FC = () => {
         ) : (
           <button 
             onClick={() => setAiOpen(true)}
-            className="w-full h-full bg-slate-900 border-2 border-blue-500/30 rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition-all group backdrop-blur-3xl hover:border-blue-500 relative"
+            className="w-full h-full bg-slate-900 border-2 border-purple-500/30 rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition-all group backdrop-blur-3xl hover:border-purple-500 relative"
           >
-            <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-10" />
-            <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-blue-500 group-hover:text-white transition-colors" />
+            <div className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-10" />
+            <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-orange-500 group-hover:text-white transition-colors" />
           </button>
         )}
       </div>
@@ -1169,8 +1148,8 @@ const App: React.FC = () => {
       <div 
         className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" 
         style={{ 
-          backgroundImage: 'linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)', 
-          backgroundSize: '40px 40px md:80px 80px' 
+          backgroundImage: 'linear-gradient(#9333ea 1px, transparent 1px), linear-gradient(90deg, #9333ea 1px, transparent 1px)', 
+          backgroundSize: '40px 40px' 
         }}
       />
 
