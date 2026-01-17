@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -14,6 +13,7 @@ import {
   Sparkles,
   Info,
   Play,
+  Pause,
   Loader2,
   Video,
   Database,
@@ -32,7 +32,30 @@ import {
   History,
   Presentation,
   CheckCircle2,
-  BarChart3
+  BarChart3,
+  Key,
+  GraduationCap,
+  School,
+  HeartHandshake,
+  Workflow,
+  Code2,
+  ShieldCheck,
+  Activity,
+  Award,
+  BrainCircuit,
+  Lightbulb,
+  Volume2,
+  VolumeX,
+  RefreshCcw,
+  CheckCircle,
+  BarChart as BarChartIcon,
+  Mic,
+  X,
+  Ticket,
+  Megaphone,
+  Briefcase,
+  PlayCircle,
+  Waves
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -44,23 +67,61 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import { askPitchAssistant } from './geminiService';
+
+// --- Helper Functions for Audio Decoding ---
+
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
 
 // --- HUD & Overlay Components ---
 
-const MissionHUD = ({ phase, progress }: { phase: string, progress: number }) => (
-  <div className="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-50 pointer-events-none">
-    <div className="flex items-center gap-4 bg-slate-900/80 border border-blue-500/30 px-6 py-2 rounded-full backdrop-blur-md">
-      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-      <div className="font-orbitron text-[10px] tracking-widest text-blue-400 font-bold uppercase">
-        OP_LOG://{phase.replace(/\s+/g, '_')}
+const MissionHUD = ({ phase, progress, current, total }: { phase: string, progress: number, current: number, total: number }) => (
+  <div className="fixed top-0 left-0 w-full p-4 md:p-6 flex justify-between items-start md:items-center z-50 pointer-events-none">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-4 bg-slate-900/80 border border-blue-500/30 px-4 py-1.5 md:px-6 md:py-2 rounded-full backdrop-blur-md">
+        <div className="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-pulse"></div>
+        <div className="font-orbitron text-[8px] md:text-[10px] tracking-widest text-blue-400 font-bold uppercase truncate max-w-[150px] md:max-w-none">
+          OP_LOG://{phase.replace(/\s+/g, '_')}
+        </div>
+      </div>
+      <div className="bg-slate-900/80 border border-slate-700/50 px-4 py-1 rounded-full backdrop-blur-md w-fit self-start">
+        <div className="font-orbitron text-[8px] md:text-[10px] text-slate-400 tracking-widest font-bold">
+          PHASE {String(current).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </div>
       </div>
     </div>
     
     <div className="flex flex-col items-end gap-1">
-      <div className="font-orbitron text-[9px] text-slate-500 tracking-[0.3em] uppercase">SYNCHRONIZATION: {Math.round(progress)}%</div>
-      <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
+      <div className="font-orbitron text-[8px] md:text-[9px] text-slate-500 tracking-[0.3em] uppercase">SYNC: {Math.round(progress)}%</div>
+      <div className="w-32 md:w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
         <div 
           className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-1000 ease-out" 
           style={{ width: `${progress}%` }}
@@ -71,12 +132,12 @@ const MissionHUD = ({ phase, progress }: { phase: string, progress: number }) =>
 );
 
 const GameMenu = ({ current, total, onSelect }: { current: number, total: number, onSelect: (idx: number) => void }) => (
-  <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 backdrop-blur-2xl border border-white/10 p-2 rounded-2xl z-50 pointer-events-auto max-w-[95vw] overflow-x-auto no-scrollbar">
+  <div className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5 md:gap-2 bg-black/60 backdrop-blur-2xl border border-white/10 p-1.5 md:p-2 rounded-2xl z-50 pointer-events-auto max-w-[90vw] overflow-x-auto no-scrollbar">
     {Array.from({ length: total }).map((_, i) => (
       <button 
         key={i}
         onClick={() => onSelect(i)}
-        className={`w-2.5 h-2.5 flex-shrink-0 rounded-full transition-all duration-300 ${i === current ? 'bg-blue-500 w-12 ring-4 ring-blue-500/20' : 'bg-slate-700 hover:bg-slate-500'}`}
+        className={`h-1.5 md:h-2.5 flex-shrink-0 rounded-full transition-all duration-300 ${i === current ? 'bg-blue-500 w-8 md:w-12 ring-2 md:ring-4 ring-blue-500/20' : 'bg-slate-700 hover:bg-slate-500 w-1.5 md:w-2.5'}`}
         title={`Phase ${i + 1}`}
       />
     ))}
@@ -86,72 +147,72 @@ const GameMenu = ({ current, total, onSelect }: { current: number, total: number
 // --- Slide Components ---
 
 const IntroBriefing = () => (
-  <div className="flex flex-col items-center justify-center h-full text-center px-6">
-    <div className="relative mb-8">
-      <div className="w-64 h-64 rounded-full border border-blue-500/20 flex items-center justify-center p-4">
+  <div className="flex flex-col items-center justify-center h-full text-center px-6 pt-16">
+    <div className="relative mb-6 md:mb-8 scale-75 md:scale-100">
+      <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border border-blue-500/20 flex items-center justify-center p-4">
         <div className="w-full h-full rounded-full border-4 border-dashed border-blue-500/40 animate-[spin_30s_linear_infinite]" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center">
-            <h1 className="text-7xl font-orbitron font-black text-white drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] tracking-tighter italic">S.M</h1>
-            <div className="text-[10px] font-orbitron text-blue-400 tracking-[0.5em] mt-2">GENESIS</div>
+            <h1 className="text-5xl md:text-7xl font-orbitron font-black text-white drop-shadow-[0_0_20px_rgba(59,130,246,0.8)] tracking-tighter italic">S.M</h1>
+            <div className="text-[8px] md:text-[10px] font-orbitron text-blue-400 tracking-[0.5em] mt-2">GENESIS</div>
           </div>
         </div>
       </div>
-      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 px-6 py-1 rounded-full font-orbitron text-[10px] tracking-widest text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 px-4 md:px-6 py-1 rounded-full font-orbitron text-[8px] md:text-[10px] tracking-widest text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]">
         MISSION_AUTHORIZED
       </div>
     </div>
     
-    <div className="max-w-4xl space-y-6">
-      <h2 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter">TEAM <span className="text-blue-500">S.C.A.A.M</span></h2>
-      <p className="text-2xl md:text-3xl text-slate-300 font-light leading-relaxed italic max-w-2xl mx-auto">
+    <div className="max-w-4xl space-y-4 md:space-y-6">
+      <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">TEAM <span className="text-blue-500">S.C.A.A.M</span></h2>
+      <p className="text-lg md:text-3xl text-slate-300 font-light leading-relaxed italic max-w-2xl mx-auto">
         "Memorizing formulas won’t improve our economy. Real learning happens when students can <span className="text-white font-bold">think, create, and act</span>."
       </p>
     </div>
     
-    <div className="mt-16 flex flex-col items-center gap-4">
-      <div className="px-8 py-3 bg-slate-900/80 border border-blue-500/30 rounded-2xl flex items-center gap-4">
-        <Presentation className="text-blue-500 w-5 h-5" />
-        <div className="text-xs text-blue-100 font-orbitron font-bold tracking-[0.3em]">E-LAB FINAL PRESENTATION // 2025</div>
+    <div className="mt-12 md:mt-16 flex flex-col items-center gap-4">
+      <div className="px-6 py-2 md:px-8 md:py-3 bg-slate-900/80 border border-blue-500/30 rounded-2xl flex items-center gap-4">
+        <Presentation className="text-blue-500 w-4 h-4 md:w-5 md:h-5" />
+        <div className="text-[8px] md:text-xs text-blue-100 font-orbitron font-bold tracking-[0.3em]">E-LAB FINAL PRESENTATION // 2025</div>
       </div>
     </div>
   </div>
 );
 
 const ProblemStatement = () => (
-  <div className="grid md:grid-cols-2 gap-12 items-center h-full px-10 md:px-24">
-    <div className="space-y-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center h-full px-6 md:px-24 pt-20 md:pt-0">
+    <div className="space-y-6 md:space-y-8 text-left">
       <div className="flex items-center gap-4">
-        <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
-          <ShieldAlert className="w-8 h-8 text-red-500" />
+        <div className="p-3 md:p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+          <ShieldAlert className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
         </div>
-        <h2 className="text-5xl font-black text-white italic uppercase tracking-tighter">Problem <span className="text-red-500">Statement</span></h2>
+        <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">Problem <span className="text-red-500">Statement</span></h2>
       </div>
       
-      <div className="bg-slate-900/80 border border-slate-700/50 p-10 rounded-[3rem] space-y-8">
-        <p className="text-xl text-slate-300 leading-relaxed font-light">
-          According to World Bank data (<span className="text-white font-bold">CEIC 2023</span>) and <span className="text-white font-bold">UNESCO (2024)</span>, about <span className="text-red-500 font-black text-3xl">30%</span> of Cameroon’s young people are not prepared for success in higher education.
+      <div className="bg-slate-900/80 border border-slate-700/50 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-6 md:space-y-8">
+        <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-light">
+          According to World Bank data (<span className="text-white font-bold">CEIC 2023</span>) and <span className="text-white font-bold">UNESCO (2024)</span>, about <span className="text-red-500 font-black text-2xl md:text-3xl">30%</span> of Cameroon’s young people are not prepared for success in higher education.
         </p>
         <div className="h-px bg-slate-800" />
-        <p className="text-slate-400 leading-relaxed italic">
+        <p className="text-sm md:text-base text-slate-400 leading-relaxed italic">
           Every year, over <span className="text-white font-bold">2 million</span> secondary school students graduate from a system heavily focused on rote memorization, lacking essential problem-solving skills.
         </p>
       </div>
     </div>
     
-    <div className="flex flex-col gap-6">
-       <div className="glass-panel p-10 rounded-[2.5rem] border-red-500/20 relative group overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-            <Lock className="w-32 h-32 text-red-500" />
+    <div className="flex flex-col gap-4 md:gap-6">
+       <div className="glass-panel p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-red-500/20 relative group overflow-hidden text-left">
+          <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover:scale-110 transition-transform">
+            <Lock className="w-24 h-24 md:w-32 md:h-32 text-red-500" />
           </div>
-          <h4 className="font-orbitron text-[10px] text-red-500 font-bold mb-4 tracking-widest">SYSTEMIC_FAILURE</h4>
-          <div className="text-7xl font-black text-white mb-2">30%</div>
-          <p className="text-slate-400">Total unpreparedness rate in youth demographic.</p>
+          <h4 className="font-orbitron text-[8px] md:text-[10px] text-red-500 font-bold mb-2 md:mb-4 tracking-widest">SYSTEMIC_FAILURE</h4>
+          <div className="text-5xl md:text-7xl font-black text-white mb-2">30%</div>
+          <p className="text-xs md:text-base text-slate-400">Total unpreparedness rate in youth demographic.</p>
        </div>
-       <div className="glass-panel p-10 rounded-[2.5rem] border-blue-500/20">
-          <h4 className="font-orbitron text-[10px] text-blue-500 font-bold mb-4 tracking-widest">VOLUME_IMPACT</h4>
-          <div className="text-7xl font-black text-white mb-2">2M+</div>
-          <p className="text-slate-400">Students trapped in memorization-heavy cycles annually.</p>
+       <div className="glass-panel p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-blue-500/20 text-left">
+          <h4 className="font-orbitron text-[8px] md:text-[10px] text-blue-500 font-bold mb-2 md:mb-4 tracking-widest">VOLUME_IMPACT</h4>
+          <div className="text-5xl md:text-7xl font-black text-white mb-2">2M+</div>
+          <p className="text-xs md:text-base text-slate-400">Students trapped in memorization-heavy cycles annually.</p>
        </div>
     </div>
   </div>
@@ -165,22 +226,22 @@ const ResearchInsights = () => {
   ];
 
   return (
-    <div className="grid md:grid-cols-2 gap-12 items-center h-full px-10 md:px-24">
-      <div className="bg-slate-900 border border-slate-700 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
-        <div className="absolute top-4 right-6 text-[10px] font-orbitron text-slate-600 uppercase tracking-widest">RESEARCH_INTEL_V1</div>
-        <h3 className="text-white font-bold mb-10 uppercase tracking-widest text-sm flex items-center gap-3 italic">
-          <Database className="w-5 h-5 text-blue-500" /> Identified Roadblocks
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center h-full px-6 md:px-24 pt-20 md:pt-0">
+      <div className="bg-slate-900 border border-slate-700 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden h-[300px] md:h-auto">
+        <div className="absolute top-4 right-6 text-[8px] md:text-[10px] font-orbitron text-slate-600 uppercase tracking-widest">RESEARCH_INTEL_V1</div>
+        <h3 className="text-white font-bold mb-6 md:mb-10 uppercase tracking-widest text-xs md:text-sm flex items-center gap-3 italic">
+          <Database className="w-4 h-4 md:w-5 md:h-5 text-blue-500" /> Identified Roadblocks
         </h3>
-        <div className="h-80">
+        <div className="h-40 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} layout="vertical" margin={{ left: 40, right: 40 }}>
+            <BarChart data={data} layout="vertical" margin={{ left: 0, right: 40 }}>
               <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={10} width={140} />
+              <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={8} width={110} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
+                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px', fontSize: '10px' }}
                 cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }} 
               />
-              <Bar dataKey="val" radius={[0, 10, 10, 0]} barSize={40}>
+              <Bar dataKey="val" radius={[0, 10, 10, 0]} barSize={24}>
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
@@ -190,21 +251,21 @@ const ResearchInsights = () => {
         </div>
       </div>
 
-      <div className="space-y-8">
-        <h2 className="text-5xl font-black text-white italic uppercase tracking-tighter">Research <span className="text-blue-500">Insights</span></h2>
+      <div className="space-y-6 md:space-y-8 text-left">
+        <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">Research <span className="text-blue-500">Insights</span></h2>
         
-        <div className="bg-blue-600 p-12 rounded-[3rem] relative group overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <ClipboardCheck className="w-32 h-32 text-white" />
+        <div className="bg-blue-600 p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] relative group overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 p-4 md:p-8 opacity-10">
+            <ClipboardCheck className="w-24 h-24 md:w-32 md:h-32 text-white" />
           </div>
-          <div className="flex items-center gap-4 mb-8">
-            <div className="p-4 bg-white/20 rounded-2xl">
-              <Users className="w-8 h-8 text-white" />
+          <div className="flex items-center gap-4 mb-6 md:mb-8">
+            <div className="p-3 md:p-4 bg-white/20 rounded-2xl">
+              <Users className="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-bold text-white uppercase tracking-tight">Survey Results</h3>
+            <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Survey Results</h3>
           </div>
-          <p className="text-blue-50 text-2xl leading-relaxed font-medium italic">
-            "Based on a primary survey with <span className="text-white font-black underline">55 students</span> and <span className="text-white font-black underline">3 teachers</span>, <span className="text-white font-black text-4xl">85%</span> report that copying notes is the primary activity."
+          <p className="text-blue-50 text-xl md:text-2xl leading-relaxed font-medium italic">
+            "Based on a primary survey with <span className="text-white font-black underline">55 students</span> and <span className="text-white font-black underline">3 teachers</span>, <span className="text-white font-black text-3xl md:text-4xl">85%</span> report that copying notes is the primary activity."
           </p>
         </div>
       </div>
@@ -213,17 +274,17 @@ const ResearchInsights = () => {
 };
 
 const MissionVision = () => (
-  <div className="h-full flex flex-col items-center justify-center text-center px-10">
-    <div className="mb-16">
-      <h2 className="text-xl font-orbitron text-blue-500 font-bold tracking-[0.6em] uppercase mb-4">Core Directive</h2>
-      <h3 className="text-8xl font-black text-white italic uppercase tracking-tighter">Our Mission</h3>
+  <div className="h-full flex flex-col items-center justify-center text-center px-6">
+    <div className="mb-10 md:mb-16">
+      <h2 className="text-sm md:text-xl font-orbitron text-blue-500 font-bold tracking-[0.4em] md:tracking-[0.6em] uppercase mb-2 md:mb-4">Core Directive</h2>
+      <h3 className="text-4xl md:text-8xl font-black text-white italic uppercase tracking-tighter">Our Mission</h3>
     </div>
     
-    <div className="max-w-5xl glass-panel p-20 rounded-[4rem] relative shadow-[0_0_100px_rgba(59,130,246,0.1)]">
-      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.6)]">
-        <Target className="w-12 h-12 text-white" />
+    <div className="max-w-5xl glass-panel p-10 md:p-20 rounded-[2.5rem] md:rounded-[4rem] relative shadow-[0_0_100px_rgba(59,130,246,0.1)]">
+      <div className="absolute -top-8 md:-top-12 left-1/2 -translate-x-1/2 w-16 h-16 md:w-24 md:h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.6)]">
+        <Target className="w-8 h-8 md:w-12 md:h-12 text-white" />
       </div>
-      <p className="text-4xl md:text-5xl text-white font-light leading-tight italic">
+      <p className="text-2xl md:text-5xl text-white font-light leading-tight italic">
         "Equip <span className="text-blue-500 font-black">one million</span> secondary school students in Cameroon with higher order thinking skills by <span className="text-blue-500 font-black">2035</span>."
       </p>
     </div>
@@ -231,13 +292,13 @@ const MissionVision = () => (
 );
 
 const ProductGenesis = () => (
-  <div className="h-full px-10 flex flex-col justify-center">
-    <div className="mb-16 text-center">
-      <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-blue-500">Genesis</span></h2>
-      <p className="text-slate-500 mt-4 font-orbitron text-xs tracking-widest uppercase">Ecosystem Architecture</p>
+  <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
+    <div className="mb-10 md:mb-16 text-center">
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-blue-500">Genesis</span></h2>
+      <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Ecosystem Architecture</p>
     </div>
     
-    <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto overflow-y-auto no-scrollbar max-h-[60vh] md:max-h-none">
       {[
         { 
           icon: <Gamepad2 />, 
@@ -258,15 +319,110 @@ const ProductGenesis = () => (
           color: 'bg-purple-600'
         }
       ].map((item, i) => (
-        <div key={i} className="glass-panel p-12 rounded-[3rem] hover:border-blue-500/50 transition-all group cursor-default">
-          <div className={`w-20 h-20 ${item.color} rounded-3xl flex items-center justify-center text-white mb-10 group-hover:scale-110 transition-transform shadow-2xl`}>
-            {/* Fix: Cast icon to ReactElement<any> to resolve className prop type error */}
-            {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-10 h-10" })}
+        <div key={i} className="glass-panel p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] hover:border-blue-500/50 transition-all group cursor-default text-left">
+          <div className={`w-14 h-14 md:w-20 md:h-20 ${item.color} rounded-2xl md:rounded-3xl flex items-center justify-center text-white mb-6 md:mb-10 group-hover:scale-110 transition-transform shadow-2xl`}>
+            {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-8 h-8 md:w-10 md:h-10" })}
           </div>
-          <h4 className="text-2xl font-bold text-white mb-6 italic uppercase tracking-tight">{item.title}</h4>
-          <p className="text-slate-400 text-lg leading-relaxed font-light">{item.desc}</p>
+          <h4 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6 italic uppercase tracking-tight">{item.title}</h4>
+          <p className="text-slate-400 text-sm md:text-lg leading-relaxed font-light">{item.desc}</p>
         </div>
       ))}
+    </div>
+  </div>
+);
+
+const RevenueModel = () => (
+  <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-12 overflow-y-auto no-scrollbar pb-16">
+    <div className="mb-2 md:mb-4 text-center shrink-0">
+      <h2 className="text-3xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">
+        <span className="text-blue-500">BUSINESS </span> 
+        <span className="text-slate-400">MODEL</span>
+      </h2>
+      <p className="text-slate-500 mt-1 font-orbitron text-[9px] md:text-xs tracking-[0.4em] uppercase">Fiscal Sustainability & Revenue Architecture</p>
+    </div>
+
+    <div className="flex justify-center mb-6 md:mb-8 shrink-0">
+      <div className="bg-blue-600/90 backdrop-blur-md px-8 py-1.5 rounded-full font-orbitron text-[9px] md:text-[10px] font-black tracking-[0.3em] shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-blue-400/30 text-white uppercase">
+        Subscriptions
+      </div>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto shrink-0 px-2 md:px-4">
+      {[
+        { 
+          name: 'FREEMIUM', 
+          price: '($0/MO)', 
+          features: [
+            'One challenge access',
+            'One chapter/Topic access',
+            'Max 2 opportunities/year'
+          ],
+          icon: <Users className="w-3.5 h-3.5" />
+        },
+        { 
+          name: 'STANDARD', 
+          price: '($7/MO)', 
+          features: [
+            'Five challenges access',
+            '5 chapters/Topic access',
+            'Max 10 opportunities/year',
+            'Leaderboard featuring'
+          ],
+          highlight: true,
+          icon: <Users className="w-3.5 h-3.5" />
+        },
+        { 
+          name: 'PREMIUM', 
+          price: '($15/MO)', 
+          features: [
+            'All challenges unlocked',
+            'All chapters unlocked',
+            'AI-powered opportunity matching'
+          ],
+          icon: <Users className="w-3.5 h-3.5" />
+        }
+      ].map((tier, i) => (
+        <div key={i} className={`glass-panel p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border flex flex-col transition-all duration-500 hover:scale-[1.01] ${tier.highlight ? 'border-blue-500/60 shadow-[0_0_40px_rgba(59,130,246,0.1)] ring-1 ring-blue-500/10 md:scale-105 relative z-10' : 'border-slate-800/30'}`}>
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+             <div className="p-2 bg-blue-600/20 rounded-full text-blue-500 shadow-md">
+                {tier.icon}
+             </div>
+             <h4 className="text-lg md:text-xl font-black text-white italic uppercase tracking-tighter leading-none">
+               {tier.name} <br/> <span className="text-[9px] md:text-[11px] text-blue-400 opacity-80 font-bold">{tier.price}</span>
+             </h4>
+          </div>
+          <ul className="space-y-2 md:space-y-3 flex-1">
+            {tier.features.map((f, j) => (
+              <li key={j} className="flex items-start gap-2 text-slate-400 font-light text-[10px] md:text-[13px] text-left leading-tight italic group">
+                <div className="w-1 md:w-1.5 h-1 md:w-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0 shadow-[0_0_6px_rgba(59,130,246,0.8)] transition-all" /> {f}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div className="flex justify-center mt-8 md:mt-12 mb-4 md:mb-6 shrink-0">
+      <div className="bg-slate-900/80 border border-slate-700 px-8 py-1.5 rounded-full font-orbitron text-[9px] md:text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">
+        Revenue Verticals
+      </div>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5 max-w-6xl mx-auto shrink-0 mb-4 px-2">
+       {[
+         { icon: <Ticket />, label: 'EVENT TICKETS' },
+         { icon: <Megaphone />, label: 'ADVERTISING' },
+         { icon: <Briefcase />, label: 'SPONSORSHIPS' }
+       ].map((item, idx) => (
+         <div key={idx} className="glass-panel px-6 py-3 rounded-full border-slate-800/30 flex items-center gap-3 hover:border-blue-500/30 transition-all group cursor-pointer hover:bg-blue-600/5">
+            <div className="p-2 bg-slate-800 rounded-full text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+               {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-3 h-3" })}
+            </div>
+            <span className="text-[9px] md:text-[10px] font-black text-slate-300 italic uppercase tracking-tighter leading-none">
+              {item.label}
+            </span>
+         </div>
+       ))}
     </div>
   </div>
 );
@@ -283,71 +439,63 @@ const InterfaceExplorer = () => {
   ];
 
   return (
-    <div className="h-full px-10 flex flex-col items-center justify-center">
-      <div className="text-center mb-10">
-         <h2 className="text-5xl font-black text-white italic uppercase tracking-tighter">System <span className="text-blue-500">Interface</span></h2>
-         <p className="text-slate-500 text-xs font-orbitron tracking-[0.4em] mt-2 uppercase">Operational Visualization</p>
+    <div className="h-full px-6 md:px-10 flex flex-col items-center justify-center pt-16 md:pt-0">
+      <div className="text-center mb-6 md:mb-10">
+         <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter">System <span className="text-blue-500">Interface</span></h2>
+         <p className="text-slate-500 text-[10px] font-orbitron tracking-[0.4em] mt-1 md:mt-2 uppercase">Operational Visualization</p>
       </div>
 
-      <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-12 gap-8 h-[65vh]">
-         <div className="md:col-span-4 space-y-3 overflow-y-auto no-scrollbar pr-2">
+      <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 h-[70vh] md:h-[65vh]">
+         <div className="md:col-span-4 flex md:block gap-2 overflow-x-auto md:overflow-y-auto no-scrollbar md:pr-2 h-24 md:h-auto shrink-0">
             {screens.map((s, i) => (
                <button 
                   key={i}
                   onClick={() => setActive(i)}
-                  className={`w-full text-left p-6 rounded-2xl transition-all border group relative overflow-hidden ${
+                  className={`w-40 md:w-full text-left p-3 md:p-6 rounded-xl md:rounded-2xl transition-all border group relative overflow-hidden flex-shrink-0 md:mb-3 ${
                     active === i 
                       ? 'bg-blue-600 border-blue-400 text-white shadow-xl' 
                       : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'
                   }`}
                >
-                  <div className="flex items-center gap-4 relative z-10">
-                     <div className={`p-3 rounded-xl ${active === i ? 'bg-white/20' : 'bg-slate-800 group-hover:bg-slate-700'}`}>
-                        {/* Fix: Cast icon to ReactElement<any> to resolve className prop type error */}
-                        {React.cloneElement(s.icon as React.ReactElement<any>, { className: "w-5 h-5" })}
+                  <div className="flex items-center gap-2 md:gap-4 relative z-10">
+                     <div className={`p-1.5 md:p-3 rounded-lg md:rounded-xl ${active === i ? 'bg-white/20' : 'bg-slate-800 group-hover:bg-slate-700'}`}>
+                        {React.cloneElement(s.icon as React.ReactElement<any>, { className: "w-3 h-3 md:w-5 md:h-5" })}
                      </div>
-                     <div>
-                        <div className="text-[9px] font-orbitron font-bold opacity-60 uppercase tracking-widest mb-1">{s.subtitle}</div>
-                        <div className="font-black text-lg uppercase italic">{s.title}</div>
+                     <div className="truncate">
+                        <div className="text-[6px] md:text-[9px] font-orbitron font-bold opacity-60 uppercase tracking-widest mb-0.5 md:mb-1">{s.subtitle}</div>
+                        <div className="font-black text-xs md:text-lg uppercase italic">{s.title}</div>
                      </div>
                   </div>
-                  {active === i && (
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                      {/* Fix: Cast icon to ReactElement<any> to resolve className prop type error */}
-                      {React.cloneElement(s.icon as React.ReactElement<any>, { className: "w-16 h-16" })}
-                    </div>
-                  )}
                </button>
             ))}
          </div>
-         <div className="md:col-span-8 glass-panel rounded-[3rem] overflow-hidden flex flex-col shadow-2xl">
-            <div className="bg-slate-950/80 p-5 border-b border-slate-800 flex items-center justify-between backdrop-blur-md">
-               <div className="flex gap-2.5">
-                  <div className="w-3.5 h-3.5 rounded-full bg-red-500/40" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-yellow-500/40" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-green-500/40" />
+         <div className="md:col-span-8 glass-panel rounded-[1.5rem] md:rounded-[3rem] overflow-hidden flex flex-col shadow-2xl min-h-0">
+            <div className="bg-slate-950/80 p-3 md:p-5 border-b border-slate-800 flex items-center justify-between backdrop-blur-md">
+               <div className="flex gap-1.5 md:gap-2.5">
+                  <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-red-500/40" />
+                  <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-yellow-500/40" />
+                  <div className="w-2 md:w-3.5 h-2 md:h-3.5 rounded-full bg-green-500/40" />
                </div>
                <div className="flex items-center gap-2">
-                  <Terminal className="w-3 h-3 text-blue-500" />
-                  <div className="font-orbitron text-[8px] text-slate-500 tracking-[0.6em] uppercase">TERMINAL_OUTPUT://{screens[active].title.toUpperCase().replace(/\s+/g, '_')}</div>
+                  <Terminal className="w-2 h-2 md:w-3 md:h-3 text-blue-500" />
+                  <div className="font-orbitron text-[6px] md:text-[8px] text-slate-500 tracking-[0.4em] md:tracking-[0.6em] uppercase">TERMINAL://{screens[active].title.toUpperCase().replace(/\s+/g, '_')}</div>
                </div>
             </div>
-            <div className="flex-1 bg-slate-900 flex items-center justify-center p-12 relative">
-               <div className="text-center space-y-8 max-w-xl">
-                  <div className="w-full aspect-video bg-black/50 rounded-2xl border border-white/5 flex items-center justify-center overflow-hidden shadow-inner group">
+            <div className="flex-1 bg-slate-900 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
+               <div className="text-center space-y-4 md:space-y-8 max-w-xl">
+                  <div className="w-full aspect-video bg-black/50 rounded-xl md:rounded-2xl border border-white/5 flex items-center justify-center overflow-hidden shadow-inner group">
                      <div className="flex flex-col items-center text-slate-700 group-hover:text-blue-500/50 transition-colors">
-                        <Cpu className="w-32 h-32 mb-6 opacity-5 animate-pulse" />
-                        <div className="font-orbitron text-xs font-black italic tracking-[0.4em] uppercase">ENCODING_VISUAL_FEED</div>
+                        <Cpu className="w-16 h-16 md:w-32 md:h-32 mb-4 md:mb-6 opacity-5 animate-pulse" />
+                        <div className="font-orbitron text-[8px] md:text-[10px] font-black italic tracking-[0.4em] uppercase">ENCODING_VISUAL_FEED</div>
                      </div>
                   </div>
                   <div>
-                     <h4 className="text-4xl font-black text-white mb-4 uppercase italic tracking-tighter">{screens[active].title}</h4>
-                     <p className="text-slate-400 text-lg font-light leading-relaxed">{screens[active].desc}</p>
+                     <h4 className="text-2xl md:text-4xl font-black text-white mb-2 md:mb-4 uppercase italic tracking-tighter">{screens[active].title}</h4>
+                     <p className="text-slate-400 text-sm md:text-lg font-light leading-relaxed">{screens[active].desc}</p>
                   </div>
                </div>
-               {/* Aesthetic overlays */}
-               <div className="absolute bottom-6 left-6 text-[8px] font-orbitron text-slate-700 uppercase">LATENCY: 12ms</div>
-               <div className="absolute bottom-6 right-6 text-[8px] font-orbitron text-slate-700 uppercase">SYNC_NODE: CAM_YDE_01</div>
+               <div className="absolute bottom-3 left-4 text-[6px] md:text-[8px] font-orbitron text-slate-700 uppercase">LATENCY: 12ms</div>
+               <div className="absolute bottom-3 right-4 text-[6px] md:text-[8px] font-orbitron text-slate-700 uppercase">SYNC_NODE: CAM_YDE_01</div>
             </div>
          </div>
       </div>
@@ -355,391 +503,332 @@ const InterfaceExplorer = () => {
   );
 };
 
-const MarketOpportunity = () => (
-  <div className="h-full grid md:grid-cols-2 gap-12 items-center px-10 md:px-24">
-    <div className="bg-gradient-to-br from-blue-700 to-indigo-900 p-16 rounded-[4rem] text-white shadow-[0_0_100px_rgba(37,99,235,0.2)] relative overflow-hidden group">
-      <div className="absolute bottom-0 right-0 w-80 h-80 bg-white/5 rounded-full -mb-40 -mr-40 group-hover:scale-110 transition-transform duration-1000" />
-      <h3 className="text-blue-200 text-xs font-bold font-orbitron tracking-[0.4em] mb-10 uppercase">Intelligence Summary</h3>
-      
-      <div className="space-y-12">
-        <div className="space-y-3">
-          <div className="text-8xl font-black tracking-tighter italic">$16.8M</div>
-          <div className="text-blue-100 font-bold uppercase tracking-[0.2em] text-sm">TAM (Total Available Market)</div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-12">
-          <div className="space-y-2">
-            <div className="text-4xl font-black">$1.2M</div>
-            <div className="text-xs text-blue-200 uppercase tracking-widest font-bold">SAM (Serviceable)</div>
-          </div>
-          <div className="space-y-2 border-l border-white/10 pl-10">
-            <div className="text-4xl font-black text-cyan-400 font-orbitron italic">$42,000</div>
-            <div className="text-xs text-blue-200 uppercase tracking-widest font-bold">SOM (500 Student Pilot)</div>
-          </div>
-        </div>
-        
-        <div className="pt-10 border-t border-white/10 flex items-center gap-6">
-          <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center backdrop-blur-md">
-            <TrendingUp className="w-8 h-8" />
-          </div>
-          <div>
-            <div className="text-2xl font-black italic">Market Capacity in 1 Year</div>
-            <div className="text-xs text-blue-200 uppercase tracking-widest">Growth Curve Analysis</div>
-          </div>
-        </div>
-      </div>
+const TargetAudience = () => (
+  <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
+    <div className="mb-10 md:mb-16 text-center">
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Strategic <span className="text-blue-500">Demographics</span></h2>
+      <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Target Vector Analysis</p>
     </div>
-    
-    <div className="space-y-12">
-      <div className="space-y-4">
-        <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter">Market <span className="text-blue-500">Intel</span></h2>
-        <p className="text-slate-400 text-xl leading-relaxed font-light">
-          We are targeting a niche but high-influence demographic of <span className="text-white font-bold">200,000 students</span> in Year 1.
-        </p>
-      </div>
-      
-      <div className="space-y-5">
-        {[
-          { icon: <Target className="text-blue-500" />, title: 'TAM', desc: 'Total students in target bracket -> 200,000 users.' },
-          { icon: <Globe className="text-blue-500" />, title: 'SAM', desc: 'Urban tech-accessible hubs in major cities.' },
-          { icon: <Rocket className="text-blue-500" />, title: 'SOM', desc: 'Initial capture of 500 pilot students for 2025.' }
-        ].map((item, i) => (
-          <div key={i} className="flex gap-8 p-8 glass-panel rounded-3xl hover:border-blue-500/60 transition-all group">
-            <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all shadow-lg">
-              {item.icon}
-            </div>
-            <div>
-              <h4 className="text-xl font-bold text-white mb-1 uppercase italic tracking-tight">{item.title}</h4>
-              <p className="text-slate-500 leading-relaxed">{item.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-const RevenueModel = () => (
-  <div className="h-full px-10 flex flex-col justify-center">
-    <div className="mb-16 text-center">
-       <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter">Revenue <span className="text-blue-500">Model</span></h2>
-       <p className="text-slate-500 mt-2 font-orbitron text-xs tracking-[0.4em] uppercase">Sustainable Monetization</p>
-    </div>
-
-    <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-       {[
-          { 
-            name: 'FREEMIUM', price: '$0/Month', 
-            features: ['Access to one challenge', 'Access to one chapter', 'Max 2 opportunities displayed/yr'] 
-          },
-          { 
-            name: 'STANDARD', price: '$7/Month', accent: true,
-            features: ['Access to five challenges', '5 chapters per challenge', 'Max 10 opportunities displayed/yr', 'Leaderboard featuring'] 
-          },
-          { 
-            name: 'PREMIUM', price: '$15/Month',
-            features: ['All Challenges unlocked', 'All Chapters unlocked', 'Unlimited Opportunities', 'AI powered opportunity matching'] 
-          }
-       ].map((tier, i) => (
-          <div key={i} className={`p-10 rounded-[3.5rem] border relative overflow-hidden flex flex-col ${tier.accent ? 'bg-blue-600 border-blue-400 shadow-[0_0_80px_rgba(59,130,246,0.3)] scale-105 z-10' : 'bg-slate-900 border-slate-800'}`}>
-             {tier.accent && (
-                <div className="absolute top-6 right-6 p-2 bg-white/20 rounded-lg">
-                   <Sparkles className="w-5 h-5 text-white" />
-                </div>
-             )}
-             <h4 className="font-orbitron text-[10px] font-bold mb-4 tracking-[0.3em] uppercase opacity-70">{tier.name}</h4>
-             <div className="text-5xl font-black mb-10 italic">{tier.price}</div>
-             <ul className="space-y-6 flex-1">
-                {tier.features.map((f, j) => (
-                   <li key={j} className="flex gap-4 text-sm font-medium">
-                      <CheckCircle2 className={`w-5 h-5 flex-shrink-0 ${tier.accent ? 'text-blue-200' : 'text-blue-500'}`} />
-                      <span className={tier.accent ? 'text-blue-50' : 'text-slate-300'}>{f}</span>
-                   </li>
-                ))}
-             </ul>
-          </div>
-       ))}
-    </div>
-
-    <div className="mt-16 flex flex-wrap justify-center gap-8">
-       {['Physical Event Fees / Tickets', 'Advertising / Featured Content', 'Corporate Sponsorships'].map((other, i) => (
-          <div key={i} className="px-8 py-4 glass-panel rounded-full text-[10px] font-orbitron font-bold uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
-             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,1)]" />
-             {other}
-          </div>
-       ))}
-    </div>
-  </div>
-);
-
-const AcquisitionStrategy = () => (
-  <div className="h-full px-10 flex flex-col items-center justify-center">
-    <div className="text-center mb-20">
-      <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter">Strategic <span className="text-blue-500">Channels</span></h2>
-    </div>
-    
-    <div className="relative w-full max-w-6xl">
-       <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-800/50 -translate-y-1/2 hidden md:block" />
-       <div className="grid md:grid-cols-3 gap-16 relative z-10">
-          {[
-             { title: 'School Outreach', desc: 'Direct institutional partnerships for bulk licensing and curriculum integration.', icon: <Users /> },
-             { title: 'The Hunt', desc: 'Physical challenge events linking reality with the digital mission ecosystem.', icon: <Map /> },
-             { title: 'Online Marketing', desc: 'Precision-targeted awareness across tech-active youth platforms.', icon: <Globe /> }
-          ].map((c, i) => (
-             <div key={i} className="flex flex-col items-center text-center group">
-                <div className="w-28 h-28 bg-blue-600 rounded-[2.5rem] flex items-center justify-center text-white mb-8 shadow-2xl group-hover:scale-110 transition-transform duration-500 border-4 border-slate-900">
-                   {/* Fix: Cast icon to ReactElement<any> to resolve className prop type error */}
-                   {React.cloneElement(c.icon as React.ReactElement<any>, { className: "w-12 h-12" })}
-                </div>
-                <h4 className="text-3xl font-black mb-4 uppercase italic tracking-tight">{c.title}</h4>
-                <p className="text-slate-400 text-lg font-light leading-relaxed max-w-xs">{c.desc}</p>
-             </div>
-          ))}
-       </div>
-    </div>
-  </div>
-);
-
-const Financials = () => (
-  <div className="h-full px-10 flex flex-col justify-center items-center">
-    <div className="text-center mb-16">
-      <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter">Budget <span className="text-blue-500">Allocation</span></h2>
-      <p className="text-slate-500 font-orbitron text-[10px] tracking-[0.5em] uppercase mt-2">Bootstrap Phase Alpha</p>
-    </div>
-
-    <div className="w-full max-w-5xl glass-panel rounded-[3.5rem] overflow-hidden shadow-[0_0_150px_rgba(59,130,246,0.05)] border-blue-500/10">
-       <table className="w-full text-left">
-          <thead>
-             <tr className="bg-slate-900 text-blue-400 font-orbitron text-[10px] tracking-widest border-b border-slate-800">
-                <th className="p-8">OP_EXPENSE_ITEM</th>
-                <th className="p-8 text-right">VAL_AMOUNT_USD</th>
-             </tr>
-          </thead>
-          <tbody className="text-slate-300">
-             {[
-                ['Game Design + Development', '4,000'],
-                ['Playstore Fees', '25'],
-                ['Legal Compliances', '50'],
-                ['Contingency Fund', '500'],
-                ['Marketing Operations', '2,935'],
-                ['Miscellaneous Logistics', '500']
-             ].map((row, i) => (
-                <tr key={i} className="border-t border-slate-800/30 hover:bg-white/5 transition-colors group">
-                   <td className="p-8 font-bold text-lg group-hover:text-white transition-colors uppercase tracking-tight italic">{row[0]}</td>
-                   <td className="p-8 font-orbitron text-right text-xl text-white">${row[1]}</td>
-                </tr>
-             ))}
-             <tr className="bg-blue-600/20 text-white font-black text-4xl border-t-2 border-blue-500">
-                <td className="p-12 italic uppercase tracking-tighter">Operational Total</td>
-                <td className="p-12 font-orbitron text-right text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]">$7,510</td>
-             </tr>
-          </tbody>
-       </table>
-    </div>
-  </div>
-);
-
-const TheSquad = () => (
-  <div className="h-full px-10 flex flex-col justify-center items-center">
-    <div className="text-center mb-20">
-      <h2 className="text-6xl font-black text-white italic mb-4 uppercase tracking-tighter">Mission <span className="text-blue-500 italic">Architects</span></h2>
-      <p className="text-slate-500 font-orbitron text-xs tracking-[0.6em] uppercase">Cross-Continental Neural Link</p>
-    </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-10 max-w-[90vw]">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto overflow-y-auto no-scrollbar">
       {[
-        { name: 'Sandrine Ojong', role: 'Team Lead', loc: 'Cameroon', c: 'border-blue-500' },
-        { name: 'Chrys Gnagne', role: 'Technical Lead', loc: 'Côte d\'Ivoire', c: 'border-purple-500' },
-        { name: 'Ayman Bahadur', role: 'R & I Strategist', loc: 'Mozambique', c: 'border-cyan-500' },
-        { name: 'Abdulkadir Abduljabar', role: 'Impact Analyst', loc: 'Nigeria', c: 'border-yellow-500' },
-        { name: 'Marylene Sugira', role: 'Team Designer', loc: 'Rwanda', c: 'border-red-500' }
-      ].map((m, i) => (
-        <div key={i} className="flex flex-col items-center group cursor-pointer text-center">
-          <div className={`relative w-40 h-40 md:w-52 md:h-52 rounded-[3.5rem] overflow-hidden mb-8 border-4 ${m.c} p-1.5 grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:rotate-3`}>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col justify-end p-6">
-              <span className="text-[10px] font-bold text-white tracking-[0.2em] uppercase">{m.loc}</span>
-            </div>
-            <img src={`https://picsum.photos/400?random=${i+200}`} alt={m.name} className="w-full h-full object-cover rounded-[3rem]" />
+        { icon: <GraduationCap />, title: 'Students', desc: 'Ages 13-18 seeking career readiness and cognitive dominance over rote systems.' },
+        { icon: <School />, title: 'Educators', desc: 'Institutions requiring advanced pedagogical tools to implement Competency Based Approach.' },
+        { icon: <HeartHandshake />, title: 'Parents', desc: 'Stakeholders invested in long-term economic success and measurable skill growth.' }
+      ].map((item, i) => (
+        <div key={i} className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border-blue-500/10 group hover:border-blue-500/40 transition-all text-left">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600/20 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 mb-4 md:mb-8 group-hover:scale-110 transition-transform">
+            {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-6 h-6 md:w-8 md:h-8" })}
           </div>
-          <h4 className="text-2xl font-black text-white leading-tight mb-2 uppercase tracking-tight italic">{m.name}</h4>
-          <p className="text-blue-500 text-[10px] font-orbitron font-bold uppercase tracking-[0.2em]">{m.role}</p>
+          <h4 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4 italic uppercase">{item.title}</h4>
+          <p className="text-slate-400 text-sm md:text-base font-light leading-relaxed">{item.desc}</p>
         </div>
       ))}
     </div>
   </div>
 );
 
-const MissionVisionVideo = () => {
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('');
-
-  const generateVision = async () => {
-    try {
-      setLoading(true);
-      setStatus('Initializing Neural Sim...');
-      
-      const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-      if (!hasKey) {
-        await (window as any).aistudio.openSelectKey();
-      }
-
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      setStatus('Synthesizing Future Educational Landscape...');
-
-      let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-fast-generate-preview',
-        prompt: 'Cinematic wide shot of a futuristic classroom in Yaoundé, Cameroon. Teenage students collaborating around a floating holographic map of the city, using futuristic touch interfaces. The environment is vibrant with deep blue, amber, and purple neon lighting, blending traditional Cameroonian textile patterns into the tech aesthetics. High-end sci-fi look, ultra-realistic textures, 4k, peaceful and inspiring innovation hub.',
-        config: {
-          numberOfVideos: 1,
-          resolution: '720p',
-          aspectRatio: '16:9'
-        }
-      });
-
-      while (!operation.done) {
-        setStatus(`Encoding reality frames... ${Math.floor(Math.random() * 20) + 10}s sync remaining.`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        operation = await ai.operations.getVideosOperation({ operation });
-      }
-
-      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-      const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-      const blob = await response.blob();
-      setVideoUrl(URL.createObjectURL(blob));
-      setLoading(false);
-    } catch (err: any) {
-      console.error(err);
-      if (err.message?.includes("Requested entity was not found.")) {
-        await (window as any).aistudio.openSelectKey();
-      }
-      setStatus('SYNC FAILED: Link Refused. Check Billing Docs.');
-      setLoading(false);
-    }
-  };
+const MarketOpportunity = () => {
+  const data = [
+    { name: 'TAM', value: 16.8, label: '$16.8M', fill: '#1e293b' },
+    { name: 'SAM', value: 1.4, label: '$1.4M', fill: '#3b82f6' },
+    { name: 'SOM (Y1)', value: 0.1, label: '$100k', fill: '#06b6d4' }
+  ];
 
   return (
-    <div className="h-full flex flex-col items-center justify-center px-10">
-      <div className="text-center mb-10">
-        <h2 className="text-7xl font-black mb-4 tracking-tighter italic uppercase">Sim: <span className="text-blue-500 italic">Genesis</span></h2>
-        <p className="text-slate-400 text-xl font-light max-w-3xl mx-auto italic">Visualizing the shift from memorization to real-world innovation.</p>
-      </div>
-
-      <div className="w-full max-w-6xl aspect-video glass-panel rounded-[3rem] overflow-hidden flex items-center justify-center relative group shadow-[0_0_150px_rgba(59,130,246,0.1)]">
-        {videoUrl ? (
-          <video src={videoUrl} controls autoPlay className="w-full h-full object-cover" />
-        ) : (
-          <div className="text-center p-16 space-y-8">
-            {loading ? (
-              <div className="flex flex-col items-center gap-8">
-                <div className="relative">
-                  <div className="w-24 h-24 border-b-2 border-blue-500 rounded-full animate-spin" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Video className="w-8 h-8 text-blue-500 animate-pulse" />
-                  </div>
-                </div>
-                <p className="font-orbitron text-xs text-blue-400 animate-pulse tracking-[0.4em] uppercase">{status}</p>
-              </div>
-            ) : (
-              <>
-                <div className="w-32 h-32 bg-blue-600/5 rounded-full flex items-center justify-center mx-auto border border-blue-500/20 group-hover:scale-110 transition-all duration-700 shadow-inner">
-                  <Play className="w-12 h-12 text-blue-500 translate-x-1" />
-                </div>
-                <div>
-                  <h3 className="text-3xl font-black text-white mb-3 uppercase italic">Synthesize Vision</h3>
-                  <p className="text-slate-500 text-sm mb-10 font-orbitron tracking-widest">DRIVE_UNIT: VEO_3.1_ENGINE</p>
-                  <button 
-                    onClick={generateVision}
-                    className="cyber-button px-14 py-5 rounded-2xl font-orbitron font-black uppercase tracking-[0.3em] flex items-center gap-6 mx-auto hover:scale-105 active:scale-95"
-                  >
-                    <Zap className="w-5 h-5" /> Execute_Simulation
-                  </button>
-                </div>
-              </>
-            )}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center h-full px-6 md:px-24 pt-20 md:pt-0">
+      <div className="space-y-6 md:space-y-8 text-left">
+        <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Market <span className="text-blue-500">Capacity</span></h2>
+        <div className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-4 md:space-y-6">
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white">
+              <BarChart3 className="w-5 h-5 md:w-7 md:h-7" />
+            </div>
+            <div>
+              <div className="text-3xl md:text-5xl font-black text-white">$16.8M</div>
+              <div className="text-[8px] md:text-xs font-orbitron text-slate-500 uppercase tracking-widest">Total Available Market (TAM)</div>
+            </div>
           </div>
-        )}
+          <p className="text-slate-400 text-sm md:text-lg font-light italic leading-relaxed">Targeting 200,000 students in the Serviceable Addressable Market (SAM) with a focus on urban centers.</p>
+        </div>
       </div>
-      <div className="mt-8 text-[10px] text-slate-600 font-orbitron tracking-[0.5em] flex items-center gap-4">
-        <Database className="w-3 h-3" /> NEURAL_LINK_STABLE // REQUIRES_PAID_API_CREDENTIALS
+      <div className="h-64 md:h-96 glass-panel rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 flex items-center justify-center">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+            <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '16px', fontSize: '10px' }}
+              itemStyle={{ color: '#fff' }}
+            />
+            <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={40}>
+              {data.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
 };
 
-const CallToAction = () => (
-  <div className="h-full flex flex-col items-center justify-center text-center px-10">
-    <div className="space-y-6 mb-16">
-      <h2 className="text-xl font-orbitron text-blue-500 font-bold tracking-[0.8em] uppercase">Final Directive</h2>
-      <h3 className="text-9xl font-black italic tracking-tighter uppercase leading-none">Call to <span className="text-blue-500">Action</span></h3>
-      <div className="flex flex-col items-center gap-2 mt-8">
-         <div className="text-2xl font-bold text-white tracking-tight">s.ayuktabong@alustudent.com</div>
-         <div className="text-slate-500 font-orbitron text-xs tracking-[0.3em]">TEAM_SCAAM // @MISSION_GENESIS</div>
+const AcquisitionStrategy = () => (
+  <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
+    <div className="mb-10 md:mb-16 text-center">
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Infection <span className="text-blue-500">Vector</span></h2>
+      <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Go-To-Market Protocol</p>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 max-w-7xl mx-auto">
+      {[
+        { icon: <School />, title: 'Direct Outreach', desc: 'Partnerships with secondary schools for system-wide mission integration.' },
+        { icon: <Workflow />, title: 'The Hunt', desc: 'Hybrid physical-digital events connecting real-world locations to XP rewards.' },
+        { icon: <Globe />, title: 'Digital Engine', desc: 'Precision targeting on TikTok, Instagram, and WhatsApp for youth conversion.' }
+      ].map((item, i) => (
+        <div key={i} className="flex flex-col items-center text-center group">
+          <div className="w-24 h-24 md:w-32 md:h-32 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-blue-500 mb-6 md:mb-8 group-hover:border-blue-500 transition-all shadow-2xl group-hover:bg-blue-600/5">
+            {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-8 h-8 md:w-12 md:h-12" })}
+          </div>
+          <h4 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4 uppercase italic">{item.title}</h4>
+          <p className="text-slate-400 font-light max-w-xs text-xs md:text-sm leading-relaxed">{item.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const Financials = () => {
+  const items = [
+    { item: 'Game Design+Development', amount: '4,000 USD' },
+    { item: 'Playstore fees', amount: '25 USD' },
+    { item: 'Legal compliences', amount: '50 USD' },
+    { item: 'Contigency Fund', amount: '500 USD' },
+    { item: 'Marketing', amount: '2,935 USD' },
+    { item: 'Miscellaneous', amount: '500 USD' },
+  ];
+
+  return (
+    <div className="h-full w-full relative flex flex-col items-center justify-center p-4 md:p-10 text-white overflow-hidden pt-16 md:pt-10">
+      {/* Background Decor Adapted to Dark Theme */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-[0.1] pointer-events-none z-0">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale" />
+      </div>
+      
+      {/* Blue Spiral Ornament - Scaled down to fit */}
+      <div className="absolute left-[-100px] top-[10%] opacity-15 pointer-events-none z-0 hidden md:block">
+         <svg width="400" height="600" viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-90">
+            <path d="M50 500C150 450 350 350 350 200C350 50 150 50 100 150C50 250 150 350 250 350C350 350 450 200 400 100" stroke="#3b82f6" strokeWidth="35" strokeLinecap="round" />
+         </svg>
+      </div>
+
+      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center">
+        <h2 className="text-3xl md:text-5xl font-black text-center mb-6 md:mb-12 tracking-tight uppercase italic">COST <span className="text-blue-500">BREAKDOWN</span></h2>
+        
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-6 md:gap-12 w-full">
+          {/* Main Table Styled for Dark Mode */}
+          <div className="w-full max-w-[640px] bg-slate-900 border-[4px] md:border-[6px] border-white/20 shadow-2xl overflow-hidden">
+            <div className="grid grid-cols-[1fr_180px] md:grid-cols-[1fr_240px] bg-[#3b82f6] border-b-[4px] md:border-b-[6px] border-white/20 text-white font-bold py-2.5 md:py-4 text-center uppercase tracking-widest text-xs md:text-base">
+              <div>ITEM</div>
+              <div className="border-l-[4px] md:border-l-[6px] border-white/20">AMOUNT</div>
+            </div>
+            {items.map((row, i) => (
+              <div key={i} className={`grid grid-cols-[1fr_180px] md:grid-cols-[1fr_240px] border-b-[4px] md:border-b-[6px] border-white/10 last:border-b-0 text-center py-2 md:py-4 font-semibold text-[10px] md:text-base ${i % 2 === 0 ? 'bg-slate-900/50' : 'bg-slate-800/50'}`}>
+                <div className="flex items-center justify-center px-4 md:px-6 text-slate-100">{row.item}</div>
+                <div className="border-l-[4px] md:border-l-[6px] border-white/10 flex items-center justify-center font-bold text-blue-400">{row.amount}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total Highlight Card Styled for Dark Mode */}
+          <div className="bg-[#3b82f6] rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-12 shadow-[0_0_50px_rgba(59,130,246,0.3)] border-[4px] md:border-[6px] border-white/20 flex items-center justify-center md:min-w-[280px]">
+            <div className="text-3xl md:text-6xl font-black text-white whitespace-nowrap tracking-tight italic">7,510 USD</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Slide Index Box (Matches Template Style) */}
+      <div className="absolute bottom-6 right-6 bg-[#3b82f6] w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-white font-black text-xl md:text-2xl shadow-[0_0_20px_rgba(59,130,246,0.5)] border-2 border-white/20 z-10">
+        11
       </div>
     </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-        <div className="p-10 glass-panel rounded-[3rem] border-blue-500/10 hover:border-blue-500/40 transition-all">
-           <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-8 mx-auto">
-              <History className="text-blue-500 w-8 h-8" />
-           </div>
-           <h4 className="text-2xl font-black text-white mb-4 italic uppercase">3-Year View</h4>
-           <p className="text-slate-400 text-sm leading-relaxed">Help over 50,000 Cameroonian students move from memorizing formulas to applying concepts.</p>
+  );
+};
+
+const TheSquad = () => (
+  <div className="h-full px-6 md:px-10 flex flex-col justify-center pt-16 md:pt-0">
+    <div className="mb-10 md:mb-16 text-center">
+      <h2 className="text-4xl md:text-6xl font-black text-white italic uppercase tracking-tighter">Mission <span className="text-blue-500">Architects</span></h2>
+      <p className="text-slate-500 mt-2 md:mt-4 font-orbitron text-[10px] md:text-xs tracking-widest uppercase">Team S.C.A.A.M Command</p>
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto overflow-y-auto no-scrollbar max-h-[60vh] md:max-h-none">
+      {[
+        { name: 'Sandrine Ojong', role: 'Team Lead', origin: 'Cameroon' },
+        { name: 'Chrys Gnagne', role: 'Technical Lead', origin: 'Côte d’Ivoire' },
+        { name: 'Ayman Bahadur', role: 'Innovation Lead', origin: 'Nigeria' },
+        { name: 'Abdulkadir Abduljabar', role: 'Impact Lead', origin: 'Rwanda' },
+        { name: 'Marylene Sugira', role: 'Designer', origin: 'Mozambique' }
+      ].map((member, i) => (
+        <div key={i} className="glass-panel p-4 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center text-center group hover:bg-blue-600/5 transition-all">
+          <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-900 rounded-2xl md:rounded-3xl mb-4 md:mb-6 overflow-hidden relative border border-slate-800 group-hover:border-blue-500 transition-colors shadow-2xl">
+            <div className="absolute inset-0 flex items-center justify-center text-slate-700 group-hover:text-blue-500 transition-colors">
+              <Users className="w-8 h-8 md:w-12 md:h-12" />
+            </div>
+          </div>
+          <h4 className="text-white font-bold leading-tight mb-1 text-[10px] md:text-sm">{member.name}</h4>
+          <div className="text-[7px] md:text-[9px] font-orbitron text-blue-500 font-bold uppercase tracking-widest mb-1 md:mb-2">{member.role}</div>
+          <div className="text-[6px] md:text-[8px] text-slate-500 uppercase tracking-tighter">{member.origin}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const CallToAction = () => (
+  <div className="h-full flex flex-col items-center justify-center text-center px-6 pt-16 md:pt-0">
+    <div className="glass-panel p-10 md:p-20 rounded-[2.5rem] md:rounded-[5rem] border-blue-500/30 max-w-5xl relative overflow-hidden shadow-2xl">
+      <div className="absolute top-0 right-0 p-8 md:p-12 opacity-5">
+        <Rocket className="w-32 h-32 md:w-64 md:h-64 text-blue-500" />
+      </div>
+      <h2 className="text-4xl md:text-7xl font-black text-white italic uppercase tracking-tighter mb-4 md:mb-8">Authorize the <span className="text-blue-500 italic">Mission</span></h2>
+      <p className="text-lg md:text-3xl text-slate-300 font-light leading-relaxed italic mb-8 md:mb-12 max-w-3xl mx-auto">
+        Join us in transforming education for <span className="text-white font-black underline decoration-blue-500 decoration-4 underline-offset-8">50,000 students</span> in the next 3 years.
+      </p>
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center">
+        <div className="px-6 py-4 md:px-10 md:py-6 bg-blue-600 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 shadow-2xl hover:scale-105 transition-transform cursor-pointer">
+          <Mail className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <span className="text-white font-bold italic tracking-tight text-sm md:text-base">contact@missiongenesis.ai</span>
+        </div>
+        <div className="px-6 py-4 md:px-10 md:py-6 bg-slate-900 border border-slate-700 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 hover:border-slate-500 transition-all cursor-pointer">
+          <Globe className="w-5 h-5 md:w-6 md:h-6 text-slate-400" />
+          <span className="text-slate-300 font-bold italic tracking-tight text-sm md:text-base">missiongenesis.africa</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const Sources = () => {
+  const refs = [
+    { text: "World Bank (via CEIC). (2023). Secondary education pupils: Cameroon CM: Secondary Education: Pupils. CEIC Data. https://www.ceicdata.com/en/cameroon/social-education-statistics/cm-secondary-education-pupils (reported by World Bank)" },
+    { text: "UNESCO International Institute for Capacity Building in Africa. (2024). Cameroon education country brief. UNESCO IICBA. https://www.iicba.unesco.org/en/cameroon" },
+    { text: "Tambe Ekobina, S. (2021). Challenges in the implementation of Competencies-Based Approach and the quality of teaching of history in some secondary schools in Mfoundi Division (Unpublished master's thesis). Université de Yaoundé I. DICAMES. https://hdl.handle.net/20.500.12177/10317" }
+  ];
+
+  return (
+    <div className="h-full w-full relative flex flex-col items-center justify-center p-4 md:p-10 text-white overflow-hidden pt-16 md:pt-10">
+      {/* Background Cityscape */}
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.1] grayscale pointer-events-none" />
+      
+      {/* Blue Spiral Ornament '9' in Background */}
+      <div className="absolute left-[-150px] top-[15%] opacity-20 pointer-events-none z-0 hidden md:block">
+         <svg width="500" height="700" viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-100 rotate-[-10deg]">
+            <path d="M50 500C150 450 350 350 350 200C350 50 150 50 100 150C50 250 150 350 250 350C350 350 450 200 400 100" stroke="#3b82f6" strokeWidth="40" strokeLinecap="round" />
+         </svg>
+      </div>
+
+      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
+        {/* Title Area with vertical blue bar */}
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-2.5 h-12 bg-blue-600 rounded-sm shadow-[0_0_20px_rgba(59,130,246,0.6)]" />
+          <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">REFERENCES</h2>
         </div>
         
-        <div className="p-12 glass-panel rounded-[3.5rem] bg-blue-600/10 border-blue-500/50 scale-110 shadow-2xl relative">
-           <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-blue-600 text-[9px] font-orbitron font-black px-4 py-1.5 rounded-full shadow-lg tracking-widest">CRITICAL_GOAL</div>
-           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-lg">
-              <Target className="text-white w-10 h-10" />
+        {/* Main Content Box Styled for Cyber Theme */}
+        <div 
+          className="relative w-full bg-[#3b82f6] border-[4px] md:border-[6px] border-emerald-400 p-8 md:p-12 shadow-[0_0_60px_rgba(59,130,246,0.2)] rounded-sm overflow-hidden"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+            backgroundSize: '20px 20px'
+          }}
+        >
+           {/* 'SA' Badge in Emerald */}
+           <div className="absolute top-0 right-0 bg-emerald-400 px-4 py-1.5 text-slate-900 font-black text-xs md:text-sm uppercase shadow-lg z-20">
+             SA
            </div>
-           <h4 className="text-3xl font-black text-white mb-6 italic uppercase">The Outcome</h4>
-           <p className="text-blue-100 font-medium leading-relaxed italic">"Mission Genesis creates a generation of learners ready for success and meaningful economic contribution."</p>
+
+           <ul className="space-y-6 md:space-y-10 relative z-10">
+             {refs.map((r, i) => (
+               <li key={i} className="flex gap-5 items-start text-xs md:text-lg leading-relaxed text-blue-50 font-semibold italic text-left">
+                 <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-white rounded-full mt-2 md:mt-3 shrink-0 shadow-md" />
+                 <span>{r.text}</span>
+               </li>
+             ))}
+           </ul>
         </div>
+      </div>
 
-        <div className="p-10 glass-panel rounded-[3rem] border-blue-500/10 hover:border-blue-500/40 transition-all">
-           <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-8 mx-auto">
-              <Users className="text-blue-500 w-8 h-8" />
-           </div>
-           <h4 className="text-2xl font-black text-white mb-4 italic uppercase">Join Us</h4>
-           <p className="text-slate-400 text-sm leading-relaxed">Join us in improving this project with feedback, ideas, and resources to prepare for implementation.</p>
-        </div>
+      {/* Slide Index Box (Matches mockup index corner) */}
+      <div className="absolute bottom-6 right-6 bg-[#3b82f6] w-14 h-14 md:w-16 md:h-16 flex items-center justify-center text-white font-black text-xl md:text-3xl shadow-[0_0_30px_rgba(59,130,246,0.4)] border-2 border-white/20 z-10">
+        14
+      </div>
     </div>
-    
-    <div className="mt-20 flex gap-8">
-       <button 
-          onClick={() => window.open('mailto:s.ayuktabong@alustudent.com')}
-          className="cyber-button px-16 py-6 rounded-2xl flex items-center gap-5 font-black text-2xl uppercase tracking-[0.2em] shadow-2xl"
-       >
-          <Mail className="w-8 h-8" /> Secure_Contact
-       </button>
-    </div>
-  </div>
-);
+  );
+};
 
-const Sources = () => (
-  <div className="h-full px-10 flex flex-col justify-center items-center">
-    <div className="text-center mb-12">
-      <h2 className="text-5xl font-black text-white italic uppercase tracking-tighter">Operational <span className="text-blue-500">Sources</span></h2>
-      <p className="text-slate-500 font-orbitron text-[10px] tracking-[0.6em] mt-2 uppercase">Data Integrity References</p>
-    </div>
-
-    <div className="w-full max-w-5xl glass-panel p-16 rounded-[4rem] space-y-10 relative overflow-hidden">
-       <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
-       {[
-          'World Bank (via CEIC). (2023). Secondary education pupils: Cameroon CM: Secondary Education: Pupils. CEIC Data Archive.',
-          'UNESCO International Institute for Capacity Building in Africa. (2024). Cameroon education country brief. UNESCO IICBA Portal.',
-          'Tambe Ekobina, S. (2021). Challenges in the implementation of Competencies-Based Approach and the quality of teaching of history in some secondary schools in Mfoundi Division (Unpublished master\'s thesis).'
-       ].map((ref, i) => (
-          <div key={i} className="flex gap-10 p-8 hover:bg-white/5 rounded-[2rem] transition-all border border-transparent hover:border-slate-800 group">
-             <div className="text-4xl font-orbitron font-black text-blue-500/30 group-hover:text-blue-500 transition-colors">0{i+1}</div>
-             <p className="text-slate-300 text-lg italic leading-relaxed font-light">{ref}</p>
+const Annexes = () => (
+  <div className="h-full px-6 md:px-10 flex flex-col justify-center items-center pt-16 md:pt-0">
+    <h2 className="text-3xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-10 md:mb-16">Operational <span className="text-blue-500">Annexes</span></h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-7xl overflow-y-auto no-scrollbar max-h-[60vh] md:max-h-none">
+      {[
+        { icon: <Terminal />, title: 'Tech Stack', list: ['React Architecture', 'Tailwind CSS UI', 'Gemini Neural Link', 'Simulation Engine'] },
+        { icon: <Map />, title: 'Expansion', list: ['Alpha Pilot: Q1 2025', 'Market Scale: Q4 2025', 'Regional Sync: 2026', 'Impact Metric V3'] },
+        { icon: <ShieldCheck />, title: 'Compliance', list: ['GDPR Protocol', 'Student Safety', 'MINSEC Curricula', 'Skill Verify'] }
+      ].map((a, i) => (
+        <div key={i} className="glass-panel p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border-slate-800/50 hover:border-blue-500/20 transition-all text-left">
+          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8">
+            <div className="p-2 md:p-4 bg-slate-900 rounded-xl text-blue-500 border border-slate-700 shadow-xl">
+              {React.cloneElement(a.icon as React.ReactElement<any>, { className: "w-4 h-4 md:w-6 md:h-6" })}
+            </div>
+            <h4 className="text-sm md:text-lg font-bold text-white uppercase italic tracking-tight">{a.title}</h4>
           </div>
-       ))}
+          <ul className="space-y-2 md:space-y-4">
+            {a.list.map((item, j) => (
+              <li key={j} className="text-slate-500 font-light flex items-center gap-2 md:gap-3 text-[10px] md:text-xs italic">
+                <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-blue-500 rounded-full shadow-[0_0_5px_rgba(59,130,246,1)] shrink-0" /> {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   </div>
 );
 
-// --- Main App Controller ---
+const ThankYou = () => (
+  <div className="h-full w-full relative flex items-center justify-center overflow-hidden animate-in fade-in duration-1000">
+    {/* Full Screen Background Team Photo */}
+    <div className="absolute inset-0 z-0">
+      <img 
+        src="https://i.ibb.co/wHJVBSv/S-B-4.jpg" 
+        alt="Team S.C.A.A.M Mission Genesis" 
+        className="w-full h-full object-cover"
+      />
+      {/* HUD overlay style vignette/tint */}
+      <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      {/* Scanline pattern overlay directly on image */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 4px, 3px 100%' }} />
+    </div>
+
+    {/* Content Overlay - Blue Dashed Rectangle */}
+    <div className="relative z-10 w-full max-w-7xl px-6 md:px-20 h-full flex flex-col items-center justify-center">
+       <div className="w-full border-[3px] md:border-[4px] border-dashed border-blue-500/80 rounded-sm p-8 md:p-16 relative flex flex-col justify-end items-start group shadow-[0_0_40px_rgba(59,130,246,0.2)]">
+          {/* Futuristic corner accent */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-400 -translate-x-2 -translate-y-2 opacity-60" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400 translate-x-2 translate-y-2 opacity-60" />
+          
+          <h2 className="text-4xl md:text-7xl font-orbitron font-black text-blue-400 tracking-tighter italic drop-shadow-[0_0_20px_rgba(59,130,246,1)]">
+            Thank You .
+          </h2>
+       </div>
+    </div>
+
+    {/* Extra bottom index decoration (Match mockup's bottom-right 16) */}
+    <div className="absolute bottom-6 right-6 w-14 h-14 md:w-16 md:h-16 bg-[#3b82f6] border-2 border-white/20 flex items-center justify-center text-white font-black text-2xl md:text-3xl shadow-[0_0_40px_rgba(59,130,246,0.6)] z-20">
+      16
+    </div>
+  </div>
+);
+
+// --- Main App Component ---
 
 const App: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -747,26 +836,135 @@ const App: React.FC = () => {
   const [chatLog, setChatLog] = useState<{role: 'ai'|'user', text: string}[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.8);
+  const [playbackProgress, setPlaybackProgress] = useState(0);
+  const [hasGreeted, setHasGreeted] = useState(false);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | number | null>(null);
   
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+  const initialGreeting = "Greetings. I’m Dawn, the Team S.C.A.A.M AI Assistant—here to help and answer all your questions, and to help you understand the core of Team S.C.A.A.M, our mission, values, and vision.";
+
   const slides = [
     { name: 'Commencement', component: <IntroBriefing /> },
     { name: 'Threat Intel', component: <ProblemStatement /> },
     { name: 'Research Output', component: <ResearchInsights /> },
     { name: 'Core Strategy', component: <MissionVision /> },
     { name: 'Pillar Architecture', component: <ProductGenesis /> },
-    { name: 'System Interface', component: <InterfaceExplorer /> },
-    { name: 'Visual Simulation', component: <MissionVisionVideo /> },
-    { name: 'Market Capacity', component: <MarketOpportunity /> },
-    { name: 'Revenue Logic', component: <RevenueModel /> },
-    { name: 'Acquisition Channels', component: <AcquisitionStrategy /> },
-    { name: 'Fiscal Breakdown', component: <Financials /> },
+    { name: 'Business Model', component: <RevenueModel /> }, 
+    { name: 'Target Audience', component: <TargetAudience /> }, 
+    { name: 'Market Capacity', component: <MarketOpportunity /> }, 
+    { name: 'Acquisition Channels', component: <AcquisitionStrategy /> }, 
+    { name: 'System Interface', component: <InterfaceExplorer /> }, 
+    { name: 'Cost Breakdown', component: <Financials /> },
     { name: 'Mission Architects', component: <TheSquad /> },
     { name: 'Final Directive', component: <CallToAction /> },
-    { name: 'Operational Sources', component: <Sources /> }
+    { name: 'Operational Sources', component: <Sources /> }, // Phase 14
+    { name: 'Annexes', component: <Annexes /> }, // Phase 15
+    { name: 'Conclusion', component: <ThankYou /> } // Phase 16
   ];
 
   const next = useCallback(() => setCurrentSlide(s => Math.min(s + 1, slides.length - 1)), [slides.length]);
   const prev = useCallback(() => setCurrentSlide(s => Math.max(s - 1, 0)), []);
+
+  const initAudio = () => {
+    if (!audioContextRef.current) {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const gain = ctx.createGain();
+      gain.connect(ctx.destination);
+      audioContextRef.current = ctx;
+      gainNodeRef.current = gain;
+    }
+  };
+
+  useEffect(() => {
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+
+  const speak = async (text: string, id: string | number) => {
+    if (!text) return;
+    initAudio();
+    const ctx = audioContextRef.current!;
+    const gain = gainNodeRef.current!;
+    
+    // Sanitize text for TTS and phonetic replacement for "S.C.A.A.M"
+    const sanitizedText = text.replace(/S\.C\.A\.A\.M/g, "Scam").replace(/[*_#~]/g, '').trim();
+
+    if (currentSourceRef.current) {
+      try { currentSourceRef.current.stop(); } catch(e) {}
+    }
+
+    setCurrentlyPlayingId(id);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Use simplified contents string for TTS model to avoid complex object interpretation issues
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: sanitizedText.substring(0, 1000), 
+        config: {
+          responseModalities: ['AUDIO'], // Use string literal to ensure correct parsing
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Kore' }, // Professional female voice
+            },
+          },
+        },
+      });
+      
+      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (base64Audio) {
+        const audioBuffer = await decodeAudioData(decode(base64Audio), ctx, 24000, 1);
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(gain);
+        currentSourceRef.current = source;
+        
+        const startTime = ctx.currentTime;
+        const duration = audioBuffer.duration;
+        
+        const updateProgress = () => {
+          if (!currentSourceRef.current) return;
+          const elapsed = ctx.currentTime - startTime;
+          const progress = Math.min((elapsed / duration) * 100, 100);
+          setPlaybackProgress(progress);
+          if (progress < 100) {
+            requestAnimationFrame(updateProgress);
+          } else {
+            setPlaybackProgress(0);
+            setCurrentlyPlayingId(null);
+          }
+        };
+
+        source.start();
+        requestAnimationFrame(updateProgress);
+        
+        source.onended = () => {
+          setPlaybackProgress(0);
+          setCurrentlyPlayingId(null);
+          currentSourceRef.current = null;
+        };
+      } else {
+        setCurrentlyPlayingId(null);
+      }
+    } catch (err) {
+      console.warn("Dawn voice engine retry/failure:", err);
+      setCurrentlyPlayingId(null);
+    }
+  };
+
+  // Auto-greeting trigger: Immediate upon open
+  useEffect(() => {
+    if (aiOpen && !hasGreeted) {
+      speak(initialGreeting, 'intro');
+      setHasGreeted(true);
+    }
+  }, [aiOpen, hasGreeted, initialGreeting]);
 
   const handleAiAsk = async () => {
     if (!input.trim()) return;
@@ -775,9 +973,14 @@ const App: React.FC = () => {
     setChatLog(prev => [...prev, { role: 'user', text: userText }]);
     setIsTyping(true);
     
-    const response = await askPitchAssistant(userText);
-    setChatLog(prev => [...prev, { role: 'ai', text: response || 'Neural link failure.' }]);
+    const responseText = await askPitchAssistant(userText);
+    const cleanedResponse = responseText || "Neural link unstable. Please repeat the query.";
+    
+    const newAiIndex = Date.now(); // Use timestamp as unique ID for log tracking
+    setChatLog(prev => [...prev, { role: 'ai', text: cleanedResponse }]);
     setIsTyping(false);
+    
+    speak(cleanedResponse, newAiIndex);
   };
 
   useEffect(() => {
@@ -790,10 +993,12 @@ const App: React.FC = () => {
   }, [next, prev]);
 
   return (
-    <div className="w-screen h-screen overflow-hidden relative select-none">
+    <div className="w-screen h-screen overflow-hidden relative select-none bg-slate-950">
       <MissionHUD 
         phase={slides[currentSlide].name} 
         progress={((currentSlide + 1) / slides.length) * 100} 
+        current={currentSlide + 1}
+        total={slides.length}
       />
 
       <main className="w-full h-full relative z-10">
@@ -802,106 +1007,179 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Manual Controls */}
-      <div className="fixed bottom-12 right-12 flex items-center gap-6 z-50">
+      <div className="fixed bottom-6 md:bottom-10 right-6 md:right-10 flex items-center gap-4 md:gap-6 z-50">
         <button 
           onClick={prev}
           disabled={currentSlide === 0}
-          className="w-16 h-16 rounded-full glass-panel flex items-center justify-center text-white hover:bg-blue-600/30 disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full glass-panel flex items-center justify-center text-white hover:bg-blue-600/30 disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
         </button>
         <button 
           onClick={next}
           disabled={currentSlide === slides.length - 1}
-          className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.5)] disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)] disabled:opacity-10 transition-all hover:scale-110 active:scale-90"
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
         </button>
       </div>
 
       <GameMenu current={currentSlide} total={slides.length} onSelect={setCurrentSlide} />
 
-      {/* AI Strategic Node */}
-      <div className={`fixed left-12 bottom-12 z-[60] transition-all duration-700 ease-in-out ${aiOpen ? 'w-[450px] h-[650px]' : 'w-16 h-16'}`}>
+      {/* AI Strategic Neural Node - Resized for better UX */}
+      <div className={`fixed left-4 bottom-4 md:left-8 md:bottom-10 z-[60] transition-all duration-700 ease-in-out ${aiOpen ? 'w-[230px] md:w-[310px] h-[340px] md:h-[460px]' : 'w-10 h-10 md:w-12 md:h-12'}`}>
         {aiOpen ? (
-          <div className="w-full h-full glass-panel rounded-[3rem] p-10 flex flex-col shadow-[0_0_150px_rgba(59,130,246,0.2)] border-blue-500/40">
-            <div className="flex justify-between items-center mb-10">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
-                  <Sparkles className="w-6 h-6 text-white" />
+          <div className="w-full h-full glass-panel rounded-[1.2rem] md:rounded-[1.5rem] p-3 md:p-4 flex flex-col shadow-[0_0_60px_rgba(59,130,246,0.1)] border-blue-500/20 relative">
+            
+            {playbackProgress > 0 && (
+              <div className="absolute top-0 left-0 w-full h-1 z-20 pointer-events-none rounded-t-[1.2rem] md:rounded-t-[1.5rem] overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-600 via-cyan-400 to-white shadow-[0_0_10px_rgba(59,130,246,0.8)] transition-all duration-100 ease-linear"
+                  style={{ width: `${playbackProgress}%` }}
+                />
+              </div>
+            )}
+
+            <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 md:w-9 md:h-9 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg transition-transform ${currentlyPlayingId !== null ? 'scale-105' : ''}`}>
+                  {currentlyPlayingId !== null ? <Waves className="w-3.5 h-3.5 md:w-4 md:h-4 text-white animate-[pulse_0.5s_infinite]" /> : <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />}
                 </div>
-                <div>
-                  <div className="font-orbitron text-[10px] text-blue-400 font-bold tracking-[0.3em] uppercase">PITCH_AI v3.1</div>
-                  <div className="text-[9px] text-slate-500 uppercase tracking-widest">Neural Link Status: SECURE</div>
+                <div className="text-left">
+                  <div className="font-orbitron text-[6px] md:text-[8px] text-blue-400 font-bold tracking-[0.1em] uppercase">DAWN V1.2</div>
+                  <div className="text-[5px] md:text-[7px] text-slate-500 uppercase tracking-widest flex items-center gap-1 mt-0.5 leading-none">
+                    <Activity className={`w-1.5 h-1.5 ${currentlyPlayingId !== null ? 'text-blue-400 animate-pulse' : 'text-green-500'}`} /> {currentlyPlayingId !== null ? 'REPLAYING' : 'STABLE'}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setAiOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                <ShieldAlert className="w-5 h-5 text-slate-500 rotate-45 hover:text-white" />
-              </button>
+              <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 bg-slate-900/50 p-1 rounded-md border border-white/5">
+                   <button 
+                    onClick={() => setIsMuted(!isMuted)}
+                    className={`p-0.5 transition-all ${isMuted ? 'text-red-400' : 'text-blue-400 hover:text-white'}`}
+                  >
+                    {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                  </button>
+                  <input 
+                    type="range" 
+                    min="0" max="1" step="0.01" 
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className="w-6 md:w-8 h-1 bg-slate-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+                <button 
+                  onClick={() => setAiOpen(false)} 
+                  className="p-1 bg-red-500/10 hover:bg-red-500/30 rounded-md transition-all text-red-500 hover:text-red-400"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-6 mb-8 scrollbar-hide">
-              {chatLog.length === 0 && (
-                <div className="bg-blue-500/5 p-8 rounded-[2rem] border border-blue-500/20 text-slate-300 text-lg leading-relaxed italic">
-                  "Greetings, Officer. I am the Strategic Advisor for S.C.A.A.M. How can I facilitate your understanding of the Mission Genesis roadmap today?"
+            <div className="flex-1 overflow-y-auto space-y-3 mb-3 scrollbar-hide pr-1">
+              <div className="bg-blue-600/5 p-3 rounded-[0.8rem] border border-blue-500/10 text-blue-50 text-[9px] md:text-[11px] leading-relaxed italic relative text-left">
+                <div className="absolute top-2.5 left-2.5">
+                  <div className={`p-0.5 rounded-sm transition-colors ${currentlyPlayingId === 'intro' ? 'bg-cyan-500' : 'bg-blue-600'}`}>
+                    <MessageSquare className="w-2.5 h-2.5 text-white" />
+                  </div>
                 </div>
-              )}
+                <div className="pl-5">
+                  "{initialGreeting}"
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <button 
+                      onClick={() => speak(initialGreeting, 'intro')}
+                      className={`flex items-center gap-1.5 text-[7px] md:text-[9px] text-white transition-all px-2.5 py-1.5 rounded-full font-bold uppercase tracking-wider shadow-md active:scale-95 ${currentlyPlayingId === 'intro' ? 'bg-cyan-600' : 'bg-blue-600 hover:bg-blue-500'}`}
+                    >
+                      <PlayCircle className={`w-3 h-3 ${currentlyPlayingId === 'intro' ? 'animate-spin' : ''}`} /> 
+                      REPLAY INTRO
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {chatLog.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-6 rounded-[2rem] text-base leading-relaxed ${
+                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                  <div className={`max-w-[95%] p-2.5 rounded-[0.8rem] text-[9px] md:text-[11px] leading-relaxed font-light text-left relative overflow-hidden transition-all ${
                     msg.role === 'user' 
-                      ? 'bg-blue-600 text-white shadow-xl rounded-tr-none' 
-                      : 'bg-slate-900/80 border border-slate-800 text-slate-200 rounded-tl-none'
+                      ? 'bg-blue-600 text-white shadow-md rounded-tr-none border border-blue-400/20' 
+                      : `bg-slate-900/80 border text-blue-50 shadow-inner rounded-tl-none flex flex-col gap-1.5 ${currentlyPlayingId === i ? 'border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.1)]' : 'border-blue-500/10'}`
                   }`}>
-                    {msg.text}
+                    <div>{msg.text}</div>
+                    {msg.role === 'ai' && (
+                      <div className="flex items-center justify-between mt-1">
+                        <button 
+                          onClick={() => speak(msg.text, i)}
+                          className={`flex items-center gap-1 text-[7px] md:text-[9px] transition-all px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${currentlyPlayingId === i ? 'bg-cyan-500/10 text-cyan-400' : 'bg-blue-400/5 text-blue-400 hover:bg-blue-600 hover:text-white'}`}
+                        >
+                          <Volume2 className={`w-2.5 h-2.5 ${currentlyPlayingId === i ? 'animate-pulse' : ''}`} /> 
+                          {currentlyPlayingId === i ? 'Playing' : 'Listen'}
+                        </button>
+                        {currentlyPlayingId === i && (
+                          <div className="flex gap-0.5 items-end h-2">
+                             <div className="w-0.5 bg-cyan-400 animate-[waves_0.9s_ease-in-out_infinite]" style={{ height: '40%' }} />
+                             <div className="w-0.5 bg-cyan-400 animate-[waves_0.6s_ease-in-out_infinite]" style={{ height: '100%' }} />
+                             <div className="w-0.5 bg-cyan-400 animate-[waves_1.1s_ease-in-out_infinite]" style={{ height: '60%' }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
               {isTyping && (
-                <div className="flex gap-2 p-4">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200" />
+                <div className="flex gap-1 p-1 items-center">
+                  <div className="w-1 bg-blue-500 rounded-full animate-bounce h-1" />
+                  <div className="w-1 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s] h-1" />
+                  <div className="w-1 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s] h-1" />
                 </div>
               )}
             </div>
             
-            <div className="relative">
-              <input 
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAiAsk()}
-                placeholder="Query strategic intelligence..." 
-                className="w-full bg-black/40 border border-slate-800 rounded-2xl px-6 py-5 text-sm text-white outline-none focus:border-blue-500 transition-all pr-16"
-              />
-              <button 
-                onClick={handleAiAsk}
-                className="absolute right-3.5 top-3.5 p-2.5 bg-blue-600 rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-95"
-              >
-                <Rocket className="w-5 h-5 text-white" />
-              </button>
+            <div className="relative group mt-auto">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full blur opacity-10 group-focus-within:opacity-20 transition-opacity" />
+              <div className="relative flex items-center">
+                <input 
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAiAsk()}
+                  placeholder="Intel query..." 
+                  className="w-full bg-slate-950 border border-slate-800 rounded-full px-3.5 py-2 md:py-2.5 text-[9px] md:text-[10px] text-white outline-none focus:border-blue-500 transition-all pr-10 md:pr-11"
+                />
+                <button 
+                  onClick={handleAiAsk}
+                  className="absolute right-1.5 p-1.5 md:p-2 bg-blue-600 rounded-full hover:bg-blue-500 transition-all shadow-md active:scale-90 text-white"
+                >
+                  <Rocket className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         ) : (
           <button 
             onClick={() => setAiOpen(true)}
-            className="w-full h-full bg-slate-900 border border-blue-500/30 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 transition-all group backdrop-blur-3xl hover:border-blue-500"
+            className="w-full h-full bg-slate-900 border-2 border-blue-500/30 rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition-all group backdrop-blur-3xl hover:border-blue-500 relative"
           >
-            <MessageSquare className="w-7 h-7 text-blue-500 group-hover:text-white transition-colors" />
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-[3px] border-slate-950 animate-bounce" />
+            <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-10" />
+            <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-blue-500 group-hover:text-white transition-colors" />
           </button>
         )}
       </div>
 
-      {/* Grid Overlay */}
       <div 
-        className="fixed inset-0 pointer-events-none opacity-[0.02] z-0" 
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" 
         style={{ 
           backgroundImage: 'linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)', 
-          backgroundSize: '100px 100px' 
+          backgroundSize: '40px 40px md:80px 80px' 
         }}
       />
+
+      <style>{`
+        @keyframes waves {
+          0%, 100% { height: 30%; }
+          50% { height: 100%; }
+        }
+      `}</style>
     </div>
   );
 };
